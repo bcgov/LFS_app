@@ -1,21 +1,20 @@
-## Economic Recovery Indicators app ----
-## app title: Economic-Indicators
-## app ID: 3622761
+## LFS app ----
+## app title: LFS_app
+## app ID: 4116302
 
 
 ## load libraries ----
-library(tidyverse)
-library(shiny)
-library(shinydashboard)
-library(shinyWidgets)
-library(rsconnect)
-library(plotly)
-library(lubridate)
-library(janitor)
-library(cansim)
-library(DT)
-library(scales)
-library(purrr)
+library(tidyverse)      ## includes: dplyr, ggplot2, tibble, readr, tidyr, purrr, stringr, forcats
+library(rsconnect)      ## deployment interface for shiny apps
+library(shiny)          ## for most app functions: reactive(), downloadHandler(), renderUI(), shinyApp(), etc.
+library(shinydashboard) ## for box()
+library(shinyWidgets)   ## for useShinydashboard()
+# library(lubridate)    ## for ymd() (date parsing)
+# library(janitor)      ## for clean_names() (on cansim data) and round_half_up()
+# library(cansim)       ## for cansim data
+# library(DT)           ## for dataTableOutput(), renderDataTable()
+# library(plotly)       ## for plotlyOutput(), ggplotly(), renderPlotly
+# library(scales)       ## for label_percent() in plots
 
 options(scipen = 999999999)  ## so chart axes read properly
 
@@ -24,89 +23,69 @@ source_exports <- "BC Stats using data supplied by Statistics Canada"
 
 
 ## chart theme/functions ----
-source("scripts/chart_theme.R")
-source("scripts/functions.R")
+# source("scripts/chart_theme.R")
+# source("scripts/functions.R")
 
 ## load data ----
-non_cansim_data <- readRDS("data/non_cansim_data.rds") %>%
-  filter(str_sub(ref_date, start = 1, end = 4) >= 2010)
-
-non_cansim_stats <- non_cansim_data %>%
-  get_mom_stats() %>%
-  get_yoy_stats() %>%
-  get_ytd_stats() %>%
-  arrange(title)
-  
-exports_data <- readRDS("data/exports_data.rds")
-exports_stats <- exports_data %>%
-  get_yoy_stats() %>%
-  get_ytd_stats() %>%
-  arrange(title)
-
-titles_all <- read_csv("indicators_list.csv")
-chart_list <- titles_all %>% select(chart_list) %>% pull()
-charts_multi <- titles_all %>% group_by(order) %>% tally() %>% filter(n > 1) %>% pull(order)
+# data <- readRDS("data/data.rds") %>%
+#   filter(str_sub(ref_date, start = 1, end = 4) >= 2010)
+# 
+# stats <- manual_data %>%
+#   get_mom_stats() %>%
+#   get_yoy_stats() %>%
+#   get_ytd_stats() %>%
+#   arrange(title)
+#   
+# titles_all <- read_csv("meta_data.csv")
+# chart_list <- titles_all %>% select(chart_list) %>% pull()
+# charts_multi <- titles_all %>% group_by(order) %>% tally() %>% filter(n > 1) %>% pull(order)
 
 
 ## get cansim data ----
-titles <- titles_all %>% filter(dataset == "cansim_auto") %>% select(-dataset)
-cansim_v <- titles %>% select(vector) %>% pull()
-cansim_t <- titles %>% select(title) %>% pull()
-titles <- titles %>% mutate(title = factor(x = cansim_t, levels = cansim_t))
-
-cansim_data <- cansim::get_cansim_vector(
-  vectors = cansim_v,
-  start_time = "2010-01-01") %>%
-  mutate(REF_DATE = ymd(REF_DATE, truncated = 2)) %>%
-  janitor::clean_names() %>%
-  left_join(titles, by = c("vector")) %>%
-  select(title, label, filter_var, ref_date, value)
-
-cansim_stats <- cansim_data %>%
-  get_mom_stats() %>%
-  get_yoy_stats() %>%
-  get_ytd_stats() %>%
-  arrange(title)
+# titles <- titles_all %>% filter(dataset == "cansim_auto") %>% select(-dataset)
+# cansim_v <- titles %>% select(vector) %>% pull()
+# cansim_t <- titles %>% select(title) %>% pull()
+# titles <- titles %>% mutate(title = factor(x = cansim_t, levels = cansim_t))
+# 
+# cansim_data <- cansim::get_cansim_vector(
+#   vectors = cansim_v,
+#   start_time = "2010-01-01") %>%
+#   mutate(REF_DATE = lubridate::ymd(REF_DATE, truncated = 2)) %>%
+#   janitor::clean_names() %>%
+#   left_join(titles, by = c("vector")) %>%
+#   select(title, label, filter_var, ref_date, value)
+# 
+# cansim_stats <- cansim_data %>%
+#   get_mom_stats() %>%
+#   get_yoy_stats() %>%
+#   get_ytd_stats() %>%
+#   arrange(title)
 
 ## merge data ----
-all_data <- bind_rows(cansim_data, non_cansim_data) %>%
-  mutate(title = factor(title, levels = unique(titles_all$title))) %>%
-  left_join(titles_all %>% select(order, title, line, source, chart_list), by = "title")
-
-all_stats <- all_data %>%
-  get_mom_stats() %>%
-  get_yoy_stats() %>%
-  get_ytd_stats() %>%
-  arrange(title)
+# all_data <- bind_rows(cansim_data, manual_data) %>%
+#   mutate(title = factor(title, levels = unique(titles_all$title))) %>%
+#   left_join(titles_all %>% select(order, title, line, source, chart_list), by = "title")
+# 
+# all_stats <- all_data %>%
+#   get_mom_stats() %>%
+#   get_yoy_stats() %>%
+#   get_ytd_stats() %>%
+#   arrange(title)
 
 ## downloadable data ----
 
 # * main data
-data_main <- all_data %>%
-  mutate(Indicator = str_replace_all(title, pattern = "<b>", ""),
-         Indicator = str_replace_all(Indicator, pattern = "</b>", ""),
-         Indicator = str_replace_all(Indicator, "<br>", " ")) %>%
-  select(Indicator, Data = ref_date, Value = value, Source = source)
+# data_main <- all_data %>%
+#   mutate(Indicator = str_replace_all(title, pattern = "<b>", ""),
+#          Indicator = str_replace_all(Indicator, pattern = "</b>", ""),
+#          Indicator = str_replace_all(Indicator, "<br>", " ")) %>%
+#   select(Indicator, Data = ref_date, Value = value, Source = source)
 
-# * exports data
-data_exp <- exports_data %>% 
-  mutate(Source = source_exports) %>%
-  select(Destination = destination, Commodity = commodity, Date = ref_date, Value = value, Source) #%>%
-  # filter(str_sub(Date, start = 1, end = 4) >= 2010)
-
-
-## get Consumer Price Index % change Year-Over-Year ----
-cpi_yoy <- all_data %>%
-  filter(str_detect(label, "Consumer Price Index")) %>%
-  get_yoy_stats() %>%
-  filter(!is.na(yoy_pct)) %>%
-  mutate(title = "<b>Consumer Price Index %</b><br>Change Year-over-Year",
-         yoy_pct = janitor::round_half_up(yoy_pct, digits = 1))
 
 ## start of app ----
 # UI demonstrating column layouts
 ui <- function(req) {
-  fluidPage(useShinydashboard(),
+  fluidPage(shinyWidgets::useShinydashboard(),
             title = "BC Economic Indicators",
   theme = "bootstrap.css",
   HTML("<html lang='en'>"),
@@ -120,47 +99,36 @@ ui <- function(req) {
                  img(src = "bcstats_logo_rev.png", title = "BC Stats", height = "80px", alt = "British Columbia - BC Stats"),
                  onclick="gtag"
                ),
-               h1("British Columbia - Economic Recovery Indicators", style="font-weight:400; color:white; margin: 5px 5px 0 18px;")
+               h1("British Columbia - Labour Market Statistics", style="font-weight:400; color:white; margin: 5px 5px 0 18px;")
              )
            )
     ),
-    # column(width=12,
-    #        style = "margin-top:100px",
-    #         tags$fieldset(
-    #               tags$legend(h2("Some heading here")),
-    #               p("Some text in a paragraph here.",
-    #               style="font-size:14px; color:#494949"),
-    #               br()
-    #         )
-    # ),
     ## Make changes to this column
     column(width = 12,
            style = "margin-top:100px",
              tabsetPanel(id = "tabs",
-               ## Summary ----
+               
+               ## tabPanel 1: Summary ----
                tabPanel("Summary",
                         value = 1,
                         ## About column
                         column(width = 3, 
                                tags$fieldset(
                                  tags$legend(h3("About")),
-                                 "Through the drop-down list to the right, you may choose Summary Type 
-                                 (i.e., Economic Recovery Indicators, Exports by Destination and Commodity, 
-                                 or Exports by Commodity).",
+                                 "blurb1",
                                  br(),br(),
-                                 "Above, the Detailed Summary tab provides the estimate and change 
-                                 month-over-month, year-over-year, and year-to-date for the key economic 
-                                 recovery indicators, while the Charts tab displays monthly results from 2010.",
-                                 br(),br(),
-                                 selectInput("dataset", "Choose a dataset to download:",
-                                             choices = c("Economic Recovery Indicators", "Exports")),
-                                 downloadButton("downloadData", "Download Data"),br(),br(),br(),
-                                 h4("Glossary"),br(),
-                                 "Throughout this dashboard, data is referenced in the following ways:",br(),
-                                 strong("SA:"),"seasonally adjusted",br(),
-                                 strong("NSA:"),"not seasonally adjusted",br(),
-                                 strong("SAAR:"),"seasonally adjusted at annual rates",br(),
-                                 strong("3MMA:"),"three-month moving average"
+                                 "blurb2",
+                                 br(),br()
+                                 # ,
+                                 # selectInput("dataset", "Choose a dataset to download:",
+                                 #             choices = c("Economic Recovery Indicators", "Exports")),
+                                 # downloadButton("downloadData", "Download Data"),br(),br(),br(),
+                                 # h4("Glossary"),br(),
+                                 # "Throughout this dashboard, data is referenced in the following ways:",br(),
+                                 # strong("SA:"),"seasonally adjusted",br(),
+                                 # strong("NSA:"),"not seasonally adjusted",br(),
+                                 # strong("SAAR:"),"seasonally adjusted at annual rates",br(),
+                                 # strong("3MMA:"),"three-month moving average"
                                )),
                         ## Data tables
                         column(width = 9,
@@ -173,20 +141,16 @@ ui <- function(req) {
                             selected = "Economic Recovery Indicators")
                         ),
                         conditionalPanel(condition = "input.summary_type == 'Economic Recovery Indicators'",
-                                         #style="background-color:#F2F2F2",
                                          br(),
                                          tags$div(
                                            style="margin-left:15px;margin-bottom:20px",
                                            h3("B.C. Summary - Key Economic Recovery Indicators")),
-                                         box(title = "OVERALL ECONOMY", status = "primary",
-                                             solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
-                                             DT::dataTableOutput("ERI_overall")),
-                                         box(title = "BUSINESSES", status = "primary",
-                                             solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
-                                             DT::dataTableOutput("ERI_businesses")),
-                                         box(title = "BRITISH COLUMBIANS", status = "primary",
-                                             solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
-                                             DT::dataTableOutput("ERI_bcians")),
+                                         # box(title = "OVERALL ECONOMY", status = "primary",
+                                         #     solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
+                                         #     DT::dataTableOutput("ERI_overall")),
+                                         # box(title = "BRITISH COLUMBIANS", status = "primary",
+                                         #     solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
+                                         #     DT::dataTableOutput("ERI_bcians")),
                                          tags$div(
                                            style="margin-left:15px",
                                              '(1) This dataset does not include persons who received the Canada Emergency Response Benefit (CERB). 
@@ -200,35 +164,14 @@ ui <- function(req) {
                                              please contact BCStats: BC.Stats@gov.bc.ca'),
                                          br()
                                          ),
-                        conditionalPanel(condition = "input.summary_type == 'Exports by Destination and Commodity'",
-                                         #style="background-color:#F2F2F2",
-                                         br(),
-                                         tags$div(
-                                           style="margin-left:15px;margin-bottom:20px",
-                                           h3("B.C. Summary - Key Exports by Destination and Commodity")),
-                                         box(title = "EXPORTS BY DESTINATION AND COMMODITY ($Thousands, NSA)", 
-                                             status = "primary",
-                                             solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
-                                             DT::dataTableOutput("Exp_dest")),
-                                         tags$div(
-                                           style="margin-left:15px",
-                                           'Note: Trends for latest reporting month compared to previous month are not available since data 
-                                           are not seasonally adjusted.',br(),
-                                           'Source: ', source_exports,br(),
-                                           'For more information on other commodities or countries visit: ', 
-                                           tags$a('https://www2.gov.bc.ca/gov/content/data/statistics/business-industry-trade/trade/trade-data')
-                                         ),
-                                         br()
-                        ),
                         conditionalPanel(condition = "input.summary_type == 'Exports by Commodity'",
-                                        # style="background-color:#F2F2F2",
                                          br(),
                                          tags$div(
                                            style="margin-left:15px;margin-bottom:20px",
                                            h3("B.C. Summary - Key Exports by Commodity")),
-                                         box(title = "EXPORTS BY COMMODITY ($Thousands, NSA)", status = "primary",
-                                             solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
-                                             DT::dataTableOutput("Exp_overall")),
+                                         # box(title = "EXPORTS BY COMMODITY ($Thousands, NSA)", status = "primary",
+                                         #     solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
+                                         #     DT::dataTableOutput("Exp_overall")),
                                          tags$div(
                                            style="margin-left:15px",
                                            'Note: Trends for latest reporting month compared to previous month are not available since data 
@@ -238,29 +181,28 @@ ui <- function(req) {
                                            tags$a('https://www2.gov.bc.ca/gov/content/data/statistics/business-industry-trade/trade/trade-data')),
                                          br()
                         )
-                       )
-                       ),
-               ## Detailed Summary ----
+                       )  ## end of Data tables
+               ),  ## end of tabPanel 1
+               
+               ## tabPanel 2: Detailed Summary ----
                tabPanel("Detailed Summary",
                         value = 2,
-                       # style="background-color:#F2F2F2",
                         br(),
                         tags$div(
                           style="margin-left:15px;margin-bottom:20px",
-                          h3("B.C. Detailed Summary - Key Economic Recovery Indicators")
+                          h3("B.C. Detailed Summary - blahblahblah")
                           ),
-                        box(title = "OVERALL ECONOMY", status = "primary",
-                            solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
-                            DT::dataTableOutput("DET_overall")
-                           ),
-                        box(title = "BUSINESSES", status = "primary",
-                            solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
-                            DT::dataTableOutput("DET_businesses")
-                          ),
-                        box(title = "BRITISH COLUMBIANS", status = "primary",
-                            solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
-                            DT::dataTableOutput("DET_bcians")
-                           ),
+                        # box(title = "OVERALL ECONOMY", status = "primary",
+                        #     solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = FALSE,
+                        #     DT::dataTableOutput("DET_overall")
+                        #    ),
+                        # box(title = "BUSINESSES", status = "primary",
+                        #     solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
+                        #     DT::dataTableOutput("DET_businesses")
+                        #   ),
+                        # box(title = "BRITISH COLUMBIANS", status = "primary",
+                        #     solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
+                        #     DT::dataTableOutput("DET_bcians")),
                         tags$div(
                           style="margin-left:15px",
                           '(1) This dataset does not include persons who received the Canada Emergency Response Benefit (CERB). 
@@ -273,39 +215,39 @@ ui <- function(req) {
                                              TransLink weekly ridership is no longer being published. If you’d like more information,
                                              please contact BCStats: BC.Stats@gov.bc.ca'),
                         br()
-                        ),
-               ## Charts ----
+               ),   ## end of tabPanel 2
+               
+               ## tabPanel 3: Charts ----
                tabPanel("Charts",
                         value = 3,
-                        #style="background-color:#F2F2F2",
                         br(),
-                        column(width = 3, 
-                        tags$fieldset(
-                          tags$legend(h3("Indicator")),
-                          #radioButtons(inline = TRUE,
-                            selectInput( ## drop-down list
-                            inputId = "indicator",
-                            label = NULL,
-                            choices = str_replace_all(unique(chart_list), pattern = "<br>", replacement = " "),
-                            selected = chart_list[1],
-                            selectize = FALSE,
-                            size = length(unique(chart_list)),
-                            width = "100%")
-                        )),
+                        column(width = 3
+                               # , 
+                        # tags$fieldset(
+                        #   tags$legend(h3("Indicator")),
+                        #   #shiny::radioButtons(inline = TRUE,
+                        #     shiny::selectInput( ## drop-down list
+                        #     inputId = "indicator",
+                        #     label = NULL,
+                        #     choices = str_replace_all(unique(chart_list), pattern = "<br>", replacement = " "),
+                        #     selected = chart_list[1],
+                        #     selectize = FALSE,
+                        #     size = length(unique(chart_list)),
+                        #     width = "100%"))
+                        ),
                         column(width = 9,
                         tags$fieldset(
-                          br(),br(),br(),
-                        plotlyOutput(outputId = "charts"),
-                        uiOutput(outputId = "caption")
+                          br(),br(),br()
+                          # ,
+                          # plotly::plotlyOutput(outputId = "charts"),
+                          # shiny::uiOutput(outputId = "caption")
                         )),
-                        br(),
-                        # Data table of chart to go here if wanted
-                        br()
-               ),
-               ## Data Sources ----
+                        br(),br()
+               ),  ## end of tabPanel 3
+               
+               ## tabPanel 4: Data Sources ----
                tabPanel("Data Sources",
                         value = 4,
-                        # style="background-color:#F2F2F2",
                         br(),
                         tags$div(
                           style="margin-left:15px;margin-bottom:20px",
@@ -331,9 +273,9 @@ ui <- function(req) {
                           DT::dataTableOutput("sources_list")
                           ),
                         br(),
-               ),
+               ),  ## end of tabPanel 3
                type = "tabs"
-             ),
+             ),  ## end of tabsetPanel
 
     ), ## End of column to make changes to
     column(width = 12,
@@ -355,235 +297,168 @@ ui <- function(req) {
   )
 )}
 
+
 ## define server logic ----
 server <- function(input, output, session) {
   
   ## Tab 1: Key Economic Recovery Indicators ----
   
-  output$ERI_overall <- DT::renderDataTable({
-    
-    data <- all_stats %>%
-      filter(filter_var == "overall") %>%
-      format_summary_data() %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:4)),
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, escape = FALSE, filter = "none")
-    
-  })
+  # output$ERI_overall <- DT::renderDataTable({
+  #   
+  #   data <- all_stats %>%
+  #     filter(filter_var == "overall") %>%
+  #     format_summary_data() %>%
+  #     datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:4)),
+  #                              sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
+  #               rownames = FALSE, escape = FALSE, filter = "none")
+  #   
+  # })
+
   
-  output$ERI_businesses <- DT::renderDataTable({
-    
-    data <- all_stats %>%
-      filter(filter_var == "businesses") %>%
-      format_summary_data() %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:4)),
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, escape = FALSE, filter = "none")
-    
-  })
-  
-  output$ERI_bcians <- DT::renderDataTable({
-    
-    data <- all_stats %>%
-      filter(filter_var == "bcians") %>%
-      format_summary_data() %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:4)),
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, escape = FALSE, filter = "none")
-  })
-  
-  ## Tab 1: Exports by Country ----
-  
-  output$Exp_dest <- DT::renderDataTable({
-    
-    data <- exports_stats %>%
-      filter(destination != "World") %>%
-      format_summary_data() %>%
-      ## make sure indentation spaces are read by DT
-      mutate(INDICATOR = str_replace_all(INDICATOR, "     ", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")) %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:4)),
-                               "pageLength" = 33,  ## show all rows
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, escape = FALSE, filter = "none")
-    
-  })
-  
-  ## Tab 1: Exports ----
-  
-  output$Exp_overall <- DT::renderDataTable({
-    
-    data <- exports_stats %>%
-      filter(destination == "World") %>%
-      format_summary_data() %>%
-      mutate(INDICATOR = str_replace(INDICATOR, pattern = "World", replacement = "ALL")) %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:4)),
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, escape = FALSE, filter = "none")
-    
-  })
-  
+
   ## Tab 1: Data Download ----
-  
-  # Reactive value for selected dataset to download
-  datasetInput <- reactive({
-    switch(input$dataset,
-           "Economic Recovery Indicators" = data_main,
-           "Exports" = data_exp)
-  })
-  
-  # Downloadable csv of selected dataset to download
-  output$downloadData <- downloadHandler(
-    filename = function() {
-      paste0(str_replace_all(input$dataset, " ", "_"), "_", Sys.Date(), ".csv")
-    },
-    content = function(file) {
-      write.csv(datasetInput(), file, row.names = FALSE)
-    }
-  )
-  
+  # 
+  # # Reactive value for selected dataset to download
+  # datasetInput <- shiny::reactive({
+  #   switch(input$dataset,
+  #          "Economic Recovery Indicators" = data_main,
+  #          "Exports" = data_exp)
+  # })
+  # 
+  # # Downloadable csv of selected dataset to download
+  # output$downloadData <- shiny::downloadHandler(
+  #   filename = function() {
+  #     paste0(str_replace_all(input$dataset, " ", "_"), "_", Sys.Date(), ".csv")
+  #   },
+  #   content = function(file) {
+  #     write.csv(datasetInput(), file, row.names = FALSE)
+  #   }
+  # )
+  # 
   ## Tab 2: Detailed Summary ----
   
-  output$DET_overall <- DT::renderDataTable({
-    
-    data <- all_stats %>%
-      filter(filter_var == "overall") %>%
-      format_detailed_data() %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:8)),
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, container = custom_headers, escape = FALSE, filter = "none")
-    
-  })
+  # output$DET_overall <- DT::renderDataTable({
+  #   
+  #   data <- all_stats %>%
+  #     filter(filter_var == "overall") %>%
+  #     format_detailed_data() %>%
+  #     datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:8)),
+  #                              sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
+  #               rownames = FALSE, container = custom_headers, escape = FALSE, filter = "none")
+  #   
+  # })
   
-  output$DET_businesses <- DT::renderDataTable({
-    
-    data <- all_stats %>%
-      filter(filter_var == "businesses") %>%
-      format_detailed_data() %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:8)),
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, container = custom_headers, escape = FALSE, filter = "none")
-    
-  })
-  
-  output$DET_bcians <- DT::renderDataTable({
-    
-    data <- all_stats %>%
-      filter(filter_var == "bcians") %>%
-      format_detailed_data() %>%
-      datatable(options = list(columnDefs = list(list(className = 'dt-center', targets = 2:8)),
-                               sDom = 't'), ## to remove filtering, pagination, etc. http://legacy.datatables.net/usage/options
-                rownames = FALSE, container = custom_headers, escape = FALSE, filter = "none")
-  })
   
   ## Tab 3: Charts ----
   
-  get_data <- reactive({
-    
-    req(input$indicator)
-    
-    line_chart <- all_data %>% 
-      filter(chart_list == input$indicator)
-    
-    ## tables display units, chart displays in thousands
-    if(input$indicator == "Housing Starts") {
-      line_chart <- line_chart %>%
-        mutate(value = janitor::round_half_up(value/1000, digits = 0),
-               title = str_replace(title, pattern = "Units", replacement = "Thousands"))
-    }
-    ## tables display values, chart displays y-o-y
-    if(str_detect(input$indicator, "Consumer Price Index")) {
-      line_chart <- cpi_yoy %>% 
-        select(-value) %>%
-        rename(value = yoy_pct)
-    }
-    
-    list(line_chart = line_chart)
-  })
+  # get_data <- shiny::reactive({
+  #   
+  #   req(input$indicator)
+  #   
+  #   line_chart <- all_data %>% 
+  #     filter(chart_list == input$indicator)
+  #   
+  #   ## tables display units, chart displays in thousands
+  #   if(input$indicator == "Housing Starts") {
+  #     line_chart <- line_chart %>%
+  #       mutate(value = janitor::round_half_up(value/1000, digits = 0),
+  #              title = str_replace(title, pattern = "Units", replacement = "Thousands"))
+  #   }
+  #   ## tables display values, chart displays y-o-y
+  #   if(str_detect(input$indicator, "Consumer Price Index")) {
+  #     line_chart <- cpi_yoy %>% 
+  #       select(-value) %>%
+  #       rename(value = yoy_pct)
+  #   }
+  #   
+  #   list(line_chart = line_chart)
+  # })
   
-  output$charts <- renderPlotly({
-
-    if(is.null(get_data()$line_chart)){
-      NULL
-      
-    } else {
-      
-      # prep plot
-      p <- ggplot(get_data()$line_chart,
-                  aes(x = ref_date, y = value)) +
-        bcstats_chart_theme +
-        scale_x_date(limits = c(min(get_data()$line_chart$ref_date),
-                                max(get_data()$line_chart$ref_date) + months(3)),
-                     expand = c(0,0),
-                     date_breaks = "6 months",
-                     date_labels = "%b %Y")             # OLD: date_labels = "%b\n%Y")
-      
-      ## multi-line charts need geom_line colored by line, with no-title legend
-      if(any(get_data()$line_chart$order %in% charts_multi)) {
-        
-        p <- p +
-          labs(x = NULL,
-               y = NULL, 
-               title = get_data()$line_chart$label %>% head(1) %>% as.character()) +
-            geom_line(aes(color = line)) +              # color each line differently
-            scale_color_manual(values = line_colors) +  # use specified colors (up to 4)
-            bcstats_chart_theme +
-            theme(legend.title = element_blank(),
-                  legend.position = "bottom"            # this isn't working: plotly ONLY places legend right (ignores all other positions)
-                  )
-       
-        ## And, if CPI chart, add horizontal line at 0
-        if(str_detect(input$indicator, "Consumer Price Index")) {
-          p <- p +
-            # scale_y_continuous(labels = scales::label_percent(scale = 1)) +
-            geom_hline(yintercept = 0)
-
-        }
-      } else {
-        
-        p <- p + 
-          geom_line() + 
-          labs(x = NULL,
-               y = NULL, 
-               title = get_data()$line_chart$title %>% head(1) %>% as.character())
-        
-      }
-
-      p <- ggplotly(p)
-
-    }
-  })
-
-  
-  output$caption <- renderUI({
-    
-   
-    if(any(str_detect(get_data()$line_chart$title, "\\(1\\)"))) {
-      HTML(paste0("Source: ", get_data()$line_chart$source %>% head(1), " <br>
-           (1) This dataset does not include persons who received the Canada Emergency Response 
-           Benefit (CERB). Between March and September 2020, CERB was introduced and the number of 
-           EI recipients dropped significantly as persons could not receive both. The CERB program 
-           ended on September 27, 2020 and eligibility rules for EI were changed, resulting in a 
-           dramatic increase in the number of EI beneficiaries in October 2020."))
-      
-    } else {
-      HTML(paste0("Source: ", get_data()$line_chart$source %>% head(1)))
-    }
-    
-  })
+  # output$charts <- plotly::renderPlotly({
+  # 
+  #   if(is.null(get_data()$line_chart)){
+  #     NULL
+  #     
+  #   } else {
+  #     
+  #     # prep plot
+  #     p <- ggplot(get_data()$line_chart,
+  #                 aes(x = ref_date, y = value)) +
+  #       bcstats_chart_theme +
+  #       scale_x_date(limits = c(min(get_data()$line_chart$ref_date),
+  #                               max(get_data()$line_chart$ref_date) + months(3)),
+  #                    expand = c(0,0),
+  #                    date_breaks = "6 months",
+  #                    date_labels = "%b %Y")
+  #     
+  #     ## multi-line charts need geom_line colored by line, with no-title legend
+  #     if(any(get_data()$line_chart$order %in% charts_multi)) {
+  #       
+  #       p <- p +
+  #         labs(x = NULL,
+  #              y = NULL, 
+  #              title = get_data()$line_chart$label %>% head(1) %>% as.character()) +
+  #           geom_line(aes(color = line)) +              # color each line differently
+  #           scale_color_manual(values = line_colors) +  # use specified colors (up to 4)
+  #           bcstats_chart_theme +
+  #           theme(legend.title = element_blank(),
+  #                 legend.position = "bottom"            # this isn't working: plotly ONLY places legend right (ignores all other positions)
+  #                 )
+  #      
+  #       ## And, if CPI chart, add horizontal line at 0
+  #       if(str_detect(input$indicator, "Consumer Price Index")) {
+  #         p <- p +
+  #           # scale_y_continuous(labels = scales::label_percent(scale = 1)) +
+  #           geom_hline(yintercept = 0)
+  # 
+  #       }
+  #     } else {
+  #       
+  #       p <- p + 
+  #         geom_line() + 
+  #         labs(x = NULL,
+  #              y = NULL, 
+  #              title = get_data()$line_chart$title %>% head(1) %>% as.character())
+  #       
+  #     }
+  # 
+  #     p <- ggplotly(p)
+  # 
+  #   }
+  # })
+  # 
+  # 
+  # output$caption <- shiny::renderUI({
+  #   
+  #  
+  #   if(any(str_detect(get_data()$line_chart$title, "\\(1\\)"))) {
+  #     HTML(paste0("Source: ", get_data()$line_chart$source %>% head(1), " <br>
+  #          (1) This dataset does not include persons who received the Canada Emergency Response 
+  #          Benefit (CERB). Between March and September 2020, CERB was introduced and the number of 
+  #          EI recipients dropped significantly as persons could not receive both. The CERB program 
+  #          ended on September 27, 2020 and eligibility rules for EI were changed, resulting in a 
+  #          dramatic increase in the number of EI beneficiaries in October 2020."))
+  #     
+  #   } else {
+  #     HTML(paste0("Source: ", get_data()$line_chart$source %>% head(1)))
+  #   }
+  #   
+  # })
 
   ## Tab 4: Data Sources ----
   
-  output$sources_list <- DT::renderDataTable({
-    
-    sources_list <- titles_all %>% 
-      select(Indicator = title, Source = source) %>%
-      mutate(Indicator = str_replace_all(Indicator, pattern = "<b>", " "),
-             Indicator = str_replace_all(Indicator, pattern = "</b>", " "),
-             Indicator = str_replace_all(Indicator, pattern = "<br>", " ")) %>%
-      add_row(Indicator = "Exports by (Destination and) Commodity", Source = source_exports, .before = 1)
-    
-  })
+  # output$sources_list <- DT::renderDataTable({
+  #   
+  #   sources_list <- titles_all %>% 
+  #     select(Indicator = title, Source = source) %>%
+  #     mutate(Indicator = str_replace_all(Indicator, pattern = "<b>", " "),
+  #            Indicator = str_replace_all(Indicator, pattern = "</b>", " "),
+  #            Indicator = str_replace_all(Indicator, pattern = "<br>", " ")) %>%
+  #     add_row(Indicator = "Exports by (Destination and) Commodity", Source = source_exports, .before = 1)
+  #   
+  # })
 }
 
+
 ## knit together ui and server ----
-shinyApp(ui = ui, server = server)
+shiny::shinyApp(ui = ui, server = server)
