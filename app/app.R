@@ -9,18 +9,14 @@ library(rsconnect)      ## deployment interface for shiny apps
 library(shiny)          ## for most app functions: reactive(), downloadHandler(), renderUI(), shinyApp(), etc.
 library(shinydashboard) ## for box()
 library(shinyWidgets)   ## for useShinydashboard()
+library(cansim)         ## for cansim data
 # library(lubridate)    ## for ymd() (date parsing)
 # library(janitor)      ## for clean_names() (on cansim data) and round_half_up()
-# library(cansim)       ## for cansim data
 # library(DT)           ## for dataTableOutput(), renderDataTable()
 # library(plotly)       ## for plotlyOutput(), ggplotly(), renderPlotly
 # library(scales)       ## for label_percent() in plots
 
 options(scipen = 999999999)  ## so chart axes read properly
-
-## set exports data source ----
-source_exports <- "BC Stats using data supplied by Statistics Canada"
-
 
 ## chart theme/functions ----
 # source("scripts/chart_theme.R")
@@ -86,32 +82,37 @@ source_exports <- "BC Stats using data supplied by Statistics Canada"
 # UI demonstrating column layouts
 ui <- function(req) {
   fluidPage(shinyWidgets::useShinydashboard(),
-            title = "BC Economic Indicators",
-  theme = "bootstrap.css",
-  HTML("<html lang='en'>"),
-  fluidRow(
-    column(width = 12,
-           style = "background-color:#003366; border-bottom:2px solid #fcba19;position:fixed;z-index:10000",
-           tags$header(class="header", style="padding:0 0px 0 0px; display:flex; height:80px;
-           width:100%;",
-             tags$div(class="banner", style="display:flex; justify-content:flex-start; align-items:center; margin: 0 10px 0 10px",
-               a(href="https://www2.gov.bc.ca/gov/content/data/about-data-management/bc-stats",
-                 img(src = "bcstats_logo_rev.png", title = "BC Stats", height = "80px", alt = "British Columbia - BC Stats"),
-                 onclick="gtag"
-               ),
-               h1("British Columbia - Labour Market Statistics", style="font-weight:400; color:white; margin: 5px 5px 0 18px;")
-             )
-           )
-    ),
+            title = "LFS App",
+            theme = "bootstrap.css",
+            HTML("<html lang='en'>"),
+            
+            fluidRow(
+              ## header column ----
+              column(
+              width = 12,
+              style = "background-color:#003366; border-bottom:2px solid #fcba19; position:fixed; z-index:10000",
+                 tags$header(class="header", style="padding:0 0px 0 0px; display:flex; height:80px;
+                 width:100%;",
+                   tags$div(class="banner", style="display:flex; justify-content:flex-start; align-items:center; margin: 0 10px 0 10px",
+                     a(href="https://www2.gov.bc.ca/gov/content/data/about-data-management/bc-stats",
+                       img(src = "bcstats_logo_rev.png", title = "BC Stats", height = "80px", alt = "British Columbia - BC Stats"),
+                       onclick="gtag"),
+                     h1("British Columbia - Labour Market Statistics", style="font-weight:400; color:white; margin: 5px 5px 0 18px;")
+                   )
+                 )
+              ),  ## end of column
+    ## main body column ----
     ## Make changes to this column
     column(width = 12,
            style = "margin-top:100px",
-             tabsetPanel(id = "tabs",
+           
+           ## creating tabs here ----  
+           tabsetPanel(id = "tabs",
                
                ## tabPanel 1: Summary ----
-               tabPanel("Summary",
+               tabPanel(title = "Summary",
                         value = 1,
-                        ## About column
+                        ## "About" column
                         column(width = 3, 
                                tags$fieldset(
                                  tags$legend(h3("About")),
@@ -120,7 +121,8 @@ ui <- function(req) {
                                  "blurb2",
                                  br(),br()
                                  # ,
-                                 # selectInput("dataset", "Choose a dataset to download:",
+                                 # selectInput(inputID = "dataset",
+                                 #             label = "Choose a dataset to download:",
                                  #             choices = c("Economic Recovery Indicators", "Exports")),
                                  # downloadButton("downloadData", "Download Data"),br(),br(),br(),
                                  # h4("Glossary"),br(),
@@ -176,7 +178,7 @@ ui <- function(req) {
                                            style="margin-left:15px",
                                            'Note: Trends for latest reporting month compared to previous month are not available since data 
                                            are not seasonally adjusted.',br(),
-                                           'Source: ', source_exports,br(),
+                                           'Source: ', #source_exports,br(),
                                            'For more information on other commodities or countries visit: ', 
                                            tags$a('https://www2.gov.bc.ca/gov/content/data/statistics/business-industry-trade/trade/trade-data')),
                                          br()
@@ -278,6 +280,8 @@ ui <- function(req) {
              ),  ## end of tabsetPanel
 
     ), ## End of column to make changes to
+    
+    ## footer column ----
     column(width = 12,
            style = "background-color:#003366; border-top:2px solid #fcba19;",
 
