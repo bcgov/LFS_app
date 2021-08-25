@@ -1,8 +1,9 @@
 .Rproj.user
-.Rhistory
 .RData
 .Ruserdata
+*.Rhistory
+*.docx
+*sandbox
 app/data*
-*sandbox.R
-*private_setup.R
 app/rsconnect*
+project*
