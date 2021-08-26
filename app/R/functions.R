@@ -67,24 +67,25 @@ format_data <- function(data, grouping, include_pct_chg = FALSE, include_diff = 
   if(include_pct_chg) {
     
     tmp <- tmp %>%
-      mutate(pct_chg = case_when(str_detect({{grouping}}, "rate") ~ NA_real_,
-                                 data_type == "Unadjusted" ~  round_half_up(((value / dplyr::lag(value, n = 12)) - 1) * 100, digits = 1),
-                                 data_type == "Seasonally adjusted" ~  round_half_up(((value / dplyr::lag(value, n = 1)) - 1) * 100, digits = 1),
-                                 data_type == "Annual" ~ round_half_up(((value / dplyr::lag(value, n = 1)) - 1) * 100, digits = 1))) 
+      mutate(pct_chg = case_when(str_detect({{grouping}}, "rate") ~ NA_character_,
+                                 data_type == "Unadjusted" ~  format(round_half_up(((value / dplyr::lag(value, n = 12)) - 1) * 100, digits = 1), big.mark = ",", nsmall = 1),
+                                 data_type == "Seasonally adjusted" ~  format(round_half_up(((value / dplyr::lag(value, n = 1)) - 1) * 100, digits = 1), big.mark = ",", nsmall = 1),
+                                 data_type == "Annual" ~ format(round_half_up(((value / dplyr::lag(value, n = 1)) - 1) * 100, digits = 1), big.mark = ",", nsmall = 1)))
   }
   
   if(include_diff) {
     
     tmp <- tmp %>%
-      mutate(diff = case_when(str_detect({{grouping}}, "rate") ~ NA_real_,
-                             data_type == "Unadjusted" ~  round_half_up(value - dplyr::lag(value, n = 12), digits = 1),
-                             data_type == "Seasonally adjusted" ~  round_half_up(value - dplyr::lag(value, n = 1), digits = 1),
-                             data_type == "Annual" ~ round_half_up(value - dplyr::lag(value, n = 1), digits = 1))) 
+      mutate(diff = case_when(str_detect({{grouping}}, "rate") ~ NA_character_,
+                             data_type == "Unadjusted" ~  format(round_half_up(value - dplyr::lag(value, n = 12), digits = 1), big.mark = ",", nsmall = 1),
+                             data_type == "Seasonally adjusted" ~  format(round_half_up(value - dplyr::lag(value, n = 1), digits = 1), big.mark = ",", nsmall = 1),
+                             data_type == "Annual" ~ format(round_half_up(value - dplyr::lag(value, n = 1), digits = 1), big.mark = ",", nsmall = 1)))
   }
   
   tmp <- tmp %>%
-    mutate(value = case_when(str_detect({{grouping}}, "rate") ~ as.character(value), 
-                             TRUE ~ format(value, big.mark = ",", nsmall = 1)))
+    mutate(value = format(value, big.mark = ",", nsmall = 1))
+    # mutate(value = case_when(str_detect({{grouping}}, "rate") ~ as.character(value), 
+    #                          TRUE ~ format(value, big.mark = ",", nsmall = 1)))
   
   pivot_spec <- tmp %>% 
     build_wider_spec(names_from = {{grouping}}, 
@@ -254,11 +255,11 @@ get_summary_table <- function() {
     select(month, geo, labour_force_characteristics, data_type, value) %>%
     pivot_wider(names_from = month, values_from = value) %>%
     mutate(change_prev_month = ifelse(str_detect(labour_force_characteristics, "rate"), "",
-                                      paste0(round_half_up(100*(curr_month - prev_month)/prev_month, digits = 1), "%"))) %>%
+                                      paste0(format(round_half_up(100*(curr_month - prev_month)/prev_month, digits = 1), big.mark = ",", nsmall = 1) , "%"))) %>%
     mutate(change_prev_year = ifelse(str_detect(labour_force_characteristics, "rate"), "",
-                                     paste0(round_half_up(100*(curr_month - prev_year)/prev_year, digits = 1), "%"))) %>%
+                                     paste0(format(round_half_up(100*(curr_month - prev_year)/prev_year, digits = 1), big.mark = ",", nsmall = 1), "%"))) %>%
     mutate_at(.vars = c("curr_month", "prev_month", "prev_year"), 
-              ~ ifelse(str_detect(labour_force_characteristics, "rate"), paste0(.x, "%"), format(.x, big.mark = ",", nsmall = 1))) %>%
+              ~ ifelse(str_detect(labour_force_characteristics, "rate"), paste0(format(.x, big.mark = ",", nsmall = 1), "%"), format(.x, big.mark = ",", nsmall = 1))) %>%
     mutate(labour_force_characteristics = fct_recode(labour_force_characteristics, 
                                                      `Population, 15 and older ('000)` = 'Population',
                                                      `Labour force ('000)` = 'Labour force',
