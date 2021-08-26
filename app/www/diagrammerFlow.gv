@@ -1,0 +1,26 @@
+digraph graph2 {
+  # styles
+  graph[style = invis]
+  node [shape = box style=rounded color = '#3c8dbc' fontname = "BCSans" width = 2]
+  edge [arrowsize=0.7, color = '#3c8dbc']
+
+  # node definitions with substituted label text
+  a [label = '@@1']
+  b [label = '@@2']
+  c [label = '@@3']
+  d [label = '@@4']
+  e [label = '@@5']
+
+  # node connections
+  a -> {b e}
+  b -> {c d}
+
+}
+
+# label text
+[1]: paste(str_to_upper(data1$label[1]), data1$current[1], '(15+ Years)', sep = '\n')
+[2]: paste(str_to_upper(data1$label[2]), data1$current[2], data2$label[2], data2$current[2], sep = "\n")
+[3]: paste(str_to_upper(data1$label[3]), data1$current[3], sep = '\n')
+[4]: paste(str_to_upper(data1$label[4]), data1$current[4], data2$label[1], data2$current[1],  sep = '\n')
+[5]: paste(str_to_upper(data1$label[5]), data1$current[5], sep = '\n')
+
