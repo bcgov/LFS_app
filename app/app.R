@@ -141,7 +141,7 @@ ui <- function(req) {
                                 style = "margin-top:25px",
                                 tags$fieldset(
                                   tags$legend(h2("Labour Force Statistics Information")),
-                                  includeMarkdown("Definitions.md")
+                                  includeMarkdown("Definitions.MD")
                                 )
                          )
                 ), 
