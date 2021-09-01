@@ -79,14 +79,14 @@ ui <- function(req) {
                                        grVizOutput("flow", height = 300))),
                                 fluidRow(tabBox(id = "hl_ts",
                                        width = NULL,
-                                       selected = "Unemployment Rate",
+                                       selected = "Employment",
                                        side = "left",
+                                       tabPanel("Employment",
+                                                dygraphOutput("hl_emp_cht")),
                                        tabPanel("Unemployment Rate",
                                                 dygraphOutput("hl_unemp_cht")),
                                        tabPanel("Participation Rate",
-                                                dygraphOutput("hl_part_cht")),
-                                       tabPanel("Employment Rate",
-                                                dygraphOutput("hl_emp_cht"))),
+                                                dygraphOutput("hl_part_cht"))),
                                        tags$fieldset(tags$em("Shaded areas indicate Canadian recessions")),
                                         br(), br()))),
                 ### Data tables tab ----
@@ -265,7 +265,7 @@ server <- function(input, output, session) {
     vector <- case_when(
       input$hl_ts == "Unemployment Rate" ~ "v2064705",
       input$hl_ts == "Participation Rate" ~ "v2064706",
-      input$hl_ts == "Employment Rate" ~ "v2064707")
+      input$hl_ts == "Employment" ~ "v2064701")
 
     data <- get_cansim_vector(vectors = vector,
                               start_time = "1976-01-01") %>%
@@ -281,9 +281,11 @@ server <- function(input, output, session) {
     
         data <- tseries()
         data <- xts(data, order.by = data$REF_DATE)
-        rate <- input$hl_ts
+        label <- ifelse(str_detect(input$hl_ts, "Rate"),
+                        paste("BC", input$hl_ts, "(%)"),
+                        paste("BC", input$hl_ts, "('000)"))
 
-        dygraph(data, main = paste("BC", rate, "(%)")) %>%
+        dygraph(data, main = label) %>%
           dyRangeSelector() %>%
           dyShading(from = "1980-1-1", to = "1980-6-1") %>%
           dyShading(from = "1981-6-1", to = "1982-10-1") %>%
