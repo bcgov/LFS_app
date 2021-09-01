@@ -72,9 +72,9 @@ ui <- function(req) {
                          column(width = 9, 
                                 br(),
                                 fluidRow(column(width = 6,
+                                       fluidRow(valueBoxOutput(width = NULL, "emp")),
                                        fluidRow(valueBoxOutput(width = NULL, "unemprate")),
-                                       fluidRow(valueBoxOutput(width = NULL, "partrate")),
-                                       fluidRow(valueBoxOutput(width = NULL, "emprate"))),
+                                       fluidRow(valueBoxOutput(width = NULL, "partrate"))),
                                 column(width = 6,
                                        grVizOutput("flow", height = 300))),
                                 fluidRow(tabBox(id = "hl_ts",
@@ -215,21 +215,21 @@ server <- function(input, output, session) {
     )
   })
   
-  output$emprate <- renderValueBox({
+  output$emp <- renderValueBox({
     
     data <- hl_stats %>%
-      filter(label == "Employment Rate")
+      filter(label == "Employment")
     
-    sign <- case_when(data$change > 0 ~ paste("Up", abs(data$change), "percentage points from last month", sep = " "),
+    sign <- case_when(data$change > 0 ~ paste("Up", prettyNum(abs(data$change), big.mark = ","), "from last month", sep = " "),
                       data$change == 0 ~ "No change from last month",
-                      data$change < 0 ~ paste("Down", abs(data$change), "percentage points from last month", sep = " "))
+                      data$change < 0 ~ paste("Down", prettyNum(abs(data$change), big.mark = ","), "from last month", sep = " "))
     
     icon <- case_when(data$change > 0 ~ "arrow-alt-circle-up",
                       data$change == 0 ~ "arrow-alt-circle-right",
                       data$change < 0 ~ "arrow-alt-circle-down")
     
     valueBox(
-      value = tags$p(paste0(data$label, ": ", data$current, "%"), style = "font-size: 50%;"),
+      value = tags$p(paste0(data$label, ": ", prettyNum(data$current, big.mark = ",")), style = "font-size: 50%;"),
       subtitle = sign,
       icon = icon(icon),
       color = "light-blue"

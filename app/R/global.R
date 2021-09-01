@@ -13,6 +13,7 @@ library(scales)       ## for label_percent() in plots
 library(DiagrammeR)   ## for flow chart
 library(dygraphs)
 library(xts)
+library(bcstatslinks)
 
 options(scipen = 999999999)  ## so chart axes read properly
 
@@ -70,20 +71,20 @@ formatted_date <- paste(month(curr_date, label = TRUE, abbr = FALSE), year(curr_
 
 dt_details <- tibble::tribble(
                         ~table_id,                                                             ~table_name,                                             ~grouping, ~include_avg_pct_chg, ~include_pct_chg, ~include_diff,
-                        "summary",                                                               "Summary",                                                    NA,                   NA,               NA,            NA,
-                         "bc_lfd",                                                  "BC Labour Force Data",                        "labour_force_characteristics",                 TRUE,             TRUE,         FALSE,
-                       "prov_emp",                                           "Provincial Employment Count",                                             "geo_abb",                 TRUE,            FALSE,         FALSE,
-                "prov_emp_growth",                                      "Provincial Employment Growth (%)",                                             "geo_abb",                   NA,             TRUE,         FALSE,
-                  "prov_emp_jobs",                                    "Provincial Jobs Created/Lost Count",                                             "geo_abb",                   NA,            FALSE,          TRUE,
-                    "prov_unempr",                                     "Provincial Unemployment Rates (%)",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
-                      "prov_empr",                                       "Provincial Employment Rates (%)",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
+                        "summary",                                   "BC and Canada Labour Market Changes",                                                    NA,                   NA,               NA,            NA,
+                         "bc_lfd",                                       "BC Labour Market Key Indicators",                        "labour_force_characteristics",                 TRUE,             TRUE,         FALSE,
+                       "prov_emp",                                          "Total Employment by Province",                                             "geo_abb",                 TRUE,            FALSE,         FALSE,
+                "prov_emp_growth",                                     "Employment Growth (%) by Province",                                             "geo_abb",                   NA,             TRUE,         FALSE,
+                  "prov_emp_jobs",                          "Employment Growth (level change) by Province",                                             "geo_abb",                   NA,            FALSE,          TRUE,
+                    "prov_unempr",                                    "Unemployment Rates (%) by Province",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
+                      "prov_empr",                                      "Employment Rates (%) by Province",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
                      "age_gender",                      "BC Employment and Unemployment by Age and Gender",                                               "label",                 TRUE,            FALSE,         FALSE,
                 "age_gender_rate","BC Employment, Unemployment, and Participation Rates by Age and Gender",                                               "label",                FALSE,            FALSE,         FALSE,
                     "ftpt_gender",                           "BC Employment by Full-Time/Part-Time Status",                                               "label",                 TRUE,            FALSE,         FALSE,
                        "industry",                                             "BC Employment by Industry", "north_american_industry_classification_system_naics",                 TRUE,             TRUE,         FALSE,
                      "occupation",                     "BC Employment and Unemployment Rate by Occupation",                                               "label",                 TRUE,            FALSE,         FALSE,
                          "region",                         "BC Employment and Unemployment Rate by Region",                                               "label",                   NA,            FALSE,         FALSE,
-                            "cma",               "BC Employment and Unemployment Rate by Metropoitan Area",                                               "label",                   NA,            FALSE,         FALSE,
+                            "cma",        "BC Employment and Unemployment Rate by Census Metropoitan Area",                                               "label",                   NA,            FALSE,         FALSE,
                             "cow",                                      "BC Employment by Class of Worker",                                     "class_of_worker",                 TRUE,             TRUE,         FALSE
                 )
 
