@@ -19,8 +19,6 @@ ui <- function(req) {
             tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active>a {border-right: 1px solid #3c8dbc}'))),
             
             
-           
-            
             fluidRow(
               ## Header column ----
               column(
@@ -45,8 +43,7 @@ ui <- function(req) {
            ## Tabset start ----  
            tabsetPanel(id = "tabs",
                        ### Highlights tab ----
-                tabPanel(title = "Highlights",
-                         value = 0,
+                tabPanel("Highlights",
                          #### Sidebar: About column ----
                          column(width = 3, 
                                 tags$fieldset(style = "width: 90%",
@@ -60,8 +57,8 @@ ui <- function(req) {
                                   "Navigate the tabs to find statistics that reflect the 
                                   labour market characteristics of the population of B.C.",
                                   br(),br(),
-                                  "To zoom in on dates for the Unemployment, Participation and Employment rate
-                                  charts, move the slider or select part of the chart with your mouse",
+                                  "To zoom in on dates for the Employment, Unemployment Rate, and Participation Rate
+                                  charts under the TRENDS box, move the slider or select part of the chart with your mouse",
                                   br(), br(),
                                   "Learn more ", 
                                   tags$a("about the Labour Force Survey", 
@@ -77,7 +74,16 @@ ui <- function(req) {
                                        fluidRow(valueBoxOutput(width = NULL, "partrate"))),
                                 column(width = 6,
                                        grVizOutput("flow", height = 300))),
-                                fluidRow(tabBox(id = "hl_ts",
+                                fluidRow(br(),br(),
+                                         shinydashboard::box(
+                                  id = "trendsbox",
+                                  title = "TRENDS",
+                                  status = "primary",
+                                  solidHeader = TRUE,
+                                  width = NULL,
+                                  collapsible = TRUE,
+                                  collapsed = TRUE,
+                                  tabBox(id = "hl_ts",
                                        width = NULL,
                                        selected = "Employment",
                                        side = "left",
@@ -88,10 +94,69 @@ ui <- function(req) {
                                        tabPanel("Participation Rate",
                                                 dygraphOutput("hl_part_cht"))),
                                        tags$fieldset(tags$em("Shaded areas indicate Canadian recessions")),
-                                        br(), br()))),
+                                        br(), br()),
+                                  shinydashboard::box(
+                                    id = "agebox",
+                                    title = "AGE AND GENDER",
+                                    status = "primary",
+                                    solidHeader = TRUE,
+                                    width = NULL,
+                                    collapsible = TRUE,
+                                    collapsed = TRUE,
+                                    tabBox(id = "hl_ag",
+                                           width = NULL,
+                                           selected = "Employment",
+                                           side = "left",
+                                           tabPanel("Employment",
+                                                    radioButtons("emp_m_or_y", 
+                                                                 label = NULL,
+                                                                 choices = c("Change from previous month" = "mom",
+                                                                             "Change from same month, previous year" = "yoy",
+                                                                             "Current values" = "all"),
+                                                                 selected = "mom", 
+                                                                 inline = TRUE),
+                                                    br(),
+                                                    plotOutput("hl_emp_ag_m_or_y")
+                                                    ),
+                                           tabPanel("Unemployment Rate",
+                                                    radioButtons("unemp_m_or_y", 
+                                                                 label = NULL,
+                                                                 choices = c("Change from previous month" = "mom",
+                                                                             "Change from same month, previous year" = "yoy",
+                                                                             "Current values" = "all"),
+                                                                 selected = "mom", 
+                                                                 inline = TRUE),
+                                                    br(),
+                                                    plotOutput("hl_unemp_ag_m_or_y")
+                                                    ),
+                                           tabPanel("Participation Rate",
+                                                    radioButtons("part_m_or_y", 
+                                                                 label = NULL,
+                                                                 choices = c("Change from previous month" = "mom",
+                                                                             "Change from same month, previous year" = "yoy",
+                                                                             "Current values" = "all"),
+                                                                 selected = "mom", 
+                                                                 inline = TRUE),
+                                                    br(),
+                                                    plotOutput("hl_part_ag_m_or_y")
+                                                    ))
+                                  ),
+                                  shinydashboard::box(
+                                    id = "regionbox",
+                                    title = "REGIONS",
+                                    status = "primary",
+                                    solidHeader = TRUE,
+                                    width = NULL,
+                                    collapsible = TRUE,
+                                    collapsed = TRUE,
+                                    column(width = 6,
+                                           plotOutput("hl_reg_map")),
+                                    column(width = 6,
+                                           plotOutput("hl_cma_map"))
+                                   
+                                  )))),
                 ### Data tables tab ----
-                tabPanel(title = "Data tables",
-                         value = 1,
+                tabPanel("Data tables",
                          #### Sidebar: Selections ----
                          column(width = 3,
                                 tags$fieldset(
@@ -99,8 +164,12 @@ ui <- function(req) {
                                   tags$legend(h2(formatted_date)),
                                   selectInput("select_data_table",
                                               label = "Select table:",
-                                              choices = choices_list,
-                                              selected = "summary",
+                                              ## Add a default value to be initially selected
+                                              ## This will be updated once Data tables tab is selected
+                                              ## Triggering reactive event 
+                                              ## i.e., won't load cansim data until tab selected
+                                              choices = c("Select table" = "default", choices_list),
+                                              selected = "default",
                                               width = "90%"),
                                   radioButtons("select_data_type",
                                                label = "Select data type:",
@@ -129,7 +198,7 @@ ui <- function(req) {
                          
                          ),
                 ### Definitions tab ----
-                tabPanel(title = "Definitions",
+                tabPanel("Definitions",
                          column(width = 12,
                                 style = "margin-top:25px",
                                 tags$fieldset(
@@ -278,7 +347,7 @@ server <- function(input, output, session) {
     output$hl_part_cht <-
     output$hl_emp_cht <-
     renderDygraph({
-    
+      
         data <- tseries()
         data <- xts(data, order.by = data$REF_DATE)
         label <- ifelse(str_detect(input$hl_ts, "Rate"),
@@ -296,18 +365,245 @@ server <- function(input, output, session) {
           
   }) %>% bindCache(input$hl_ts)
   
+  ### Age and Gender chart ----
+  ag_reactive <- reactive({
+    
+    vectors_filt <- vectors %>% 
+      filter(str_detect(table, "age_gender") & 
+               labour_force_characteristics == str_to_sentence(input$hl_ag) &
+               data_type == "Seasonally adjusted") 
+    
+    
+    data <- get_cansim_vector(vectors = vectors_filt %>%
+                                pull(vector),
+                              start_time = prev_year) %>%
+      clean_names() %>%
+      select(vector, ref_date, value) %>%
+      mutate(ref_date = ymd(ref_date)) %>%
+      filter(ref_date %in% c(curr_date, prev_month, prev_year)) %>%
+      left_join(vectors_filt, by = "vector") %>%
+      mutate(date = case_when(ref_date == curr_date ~ "Current",
+                              ref_date == prev_month ~ "Previous month",
+                              ref_date == prev_year ~ "Same month, previous year")) 
+    
+  }) %>% bindCache(input$hl_ag)
+  
+  output$hl_emp_ag_m_or_y <-
+    output$hl_unemp_ag_m_or_y <-
+    output$hl_part_ag_m_or_y <- renderPlot({
+      
+      m_or_y <- case_when(input$hl_ag == "Employment" ~ input$emp_m_or_y,
+                          input$hl_ag == "Unemployment Rate" ~ input$unemp_m_or_y, 
+                          input$hl_ag == "Participation Rate" ~ input$part_m_or_y)
+      
+      
+      if(m_or_y == "all") {
+        
+        data <- ag_reactive()
+        
+        data$sex <- factor(data$sex, levels = c("Total", "Males", "Females"))
+        data$date <- factor(data$date, levels = c("Same month, previous year","Previous month","Current"))
+        data <- data %>% arrange(desc(sex), desc(date)) 
+        
+        label <- ifelse(str_detect(input$hl_ag, "Rate"),
+                        paste("BC", input$hl_ag, "(%) by Age and Gender"),
+                        paste("BC", input$hl_ag, "('000) by Age and Gender"))
+        
+        maxlim <- case_when(input$hl_ag == "Employment" ~ 500,
+                            input$hl_ag == "Unemployment Rate" ~ 5,
+                            input$hl_ag == "Participation Rate" ~ 10)
+        
+        angle <- ifelse(str_detect(input$hl_ag, "Rate"), 0, 25)
+        
+        colors <- RColorBrewer::brewer.pal(5, name = "Blues")[2:4]
+        names(colors) <- data %>% pull(date) %>% unique()
+        
+        p <- ggplot(data, aes(x = age_group, y = value, fill = date)) +
+          geom_col(position = position_dodge()) +
+          facet_wrap(facets = data$sex) +
+          labs(x = "", y = "", fill = "", title = label) +
+          geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1)),
+                    position = position_dodge(width = 0.9),
+                    size = 3, vjust = -1, hjust = 0.2, angle = angle) +
+          guides(fill = guide_legend(reverse = TRUE)) +
+          scale_y_continuous(expand = c(0,0), limits = c(0, max(data$value) + maxlim)) +
+          scale_fill_manual(values = colors) +
+          theme(axis.text.x=element_text(angle=25, hjust = 1),
+                plot.title = element_text(hjust = 0.5, face="bold"),
+                plot.subtitle = element_text(hjust = 0.5),
+                legend.position="bottom",
+                legend.justification=c(1,0),
+                text = element_text(size = 16, family = "BCSans"))
+      } else {
+        
+        data <- ag_reactive() %>%
+          select(-ref_date) %>%
+          pivot_wider(names_from = "date", values_from = "value") %>%
+          mutate(mom = Current - `Previous month`,
+                 yoy = Current - `Same month, previous year`) %>%
+          pivot_longer(cols = c(mom, yoy), names_to = "comparison", values_to = "value") %>%
+          filter(comparison == m_or_y) %>%
+          mutate(vjust = ifelse(value > 0, 1.5, -1.5))
+        
+        data$sex <- factor(data$sex, levels = c("Total", "Males", "Females"))
+        data <- data %>% arrange(desc(sex))
+        
+        label <- case_when(str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month (ppt)",
+                           str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year (ppt)",
+                           !str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month ('000)",
+                           !str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year ('000)")
+        
+        colors <- RColorBrewer::brewer.pal(5, name = "Blues")[2:4]
+        names(colors) <- data %>% pull(sex) %>% unique()
+        
+        p <- ggplot(data, aes(x = age_group, y = value, fill = sex)) +
+          geom_col(position = position_dodge(width = 0.5), width = 0.5) +
+          geom_hline(yintercept = 0) + 
+          labs(x = "", y = "", fill = "", 
+               title = paste("BC", input$hl_ag, "by Age and Gender"), 
+               subtitle = label) +
+          guides(fill = guide_legend(reverse = TRUE)) +
+          geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1), vjust = vjust),
+                    position = position_dodge(width = 0.5),
+                    size = 5) +
+          scale_fill_manual(values = colors) +
+          bcstats_chart_theme +
+          theme(plot.title = element_text(hjust = 0.5),
+                plot.subtitle = element_text(hjust = 0.5)) 
+        
+      }
+
+     
+      p
+
+    }) 
+  
+  ### Regions and CMAs ----
+  
+  output$hl_reg_map <- renderPlot({
+    
+    
+    vectors_filt <- vectors %>% 
+      filter(table == "region",
+             labour_force_characteristics == "Unemployment rate",
+             data_type == "Unadjusted",
+             geo != "British Columbia") 
+    
+    
+    data <- get_cansim_vector(vectors = vectors_filt %>%
+                                pull(vector),
+                              start_time = prev_year) %>%
+      clean_names() %>%
+      select(vector, ref_date, value) %>%
+      mutate(ref_date = ymd(ref_date)) %>%
+      filter(ref_date %in% c(curr_date)) %>%
+      left_join(vectors_filt, by = "vector") 
+    
+    geo_data <- economic_regions %>%
+      left_join(data, by = "geo") %>%
+      mutate(geo_label = str_wrap(str_extract(geo, "^([^,])+"), width = 10))
+    
+    ggplot() +
+      geom_sf(data = geo_data, aes(fill = value ), colour = "white", lwd = .2) +
+      geom_sf_text(data = geo_data, aes(label = geo_label), size = 4) +
+      labs(x = NULL, y = NULL,
+           caption = "Unadjusted - 3 Month Moving Average",
+           title = "Unemployment Rate (%)",
+           subtitle = "by Region") +
+      scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
+      theme_minimal() +
+      theme(
+        text = element_text(size = 16, family = "BCSans"),
+        # legend.title = element_text(size = 11),
+        # legend.text = element_text(size = 10),
+        plot.caption = element_text(hjust = 0.7),
+        panel.grid.major = element_line(colour = "transparent"),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face="bold"),
+        plot.subtitle = element_text(hjust = 0.5)
+      )
+    
+    
+  })  
+  
+  output$hl_cma_map <- renderPlot({
+    
+    vectors_filt <- vectors %>% 
+      filter(table == "cma",
+             labour_force_characteristics == "Unemployment rate",
+             data_type == "Unadjusted",
+             geo != "British Columbia") 
+    
+    
+    data <- get_cansim_vector(vectors = vectors_filt %>%
+                                pull(vector),
+                              start_time = prev_year) %>%
+      clean_names() %>%
+      select(vector, ref_date, value) %>%
+      mutate(ref_date = ymd(ref_date)) %>%
+      filter(ref_date %in% c(curr_date)) %>%
+      left_join(vectors_filt, by = "vector") 
+    
+    geo_data <- cmas %>%
+      left_join(data, by = "geo") %>%
+      mutate(vjust = ifelse(geo %in% c("Victoria","Abbotsford-Mission"), 1.7, -1.1),
+             hjust = case_when(geo == "Abbotsford-Mission" ~ -0.1,
+                               geo == "Kelowna" ~ 0,
+                               geo == "Victoria" ~ 0.9,
+                               geo == "Vancouver" ~ 0.05))
+    
+    ggplot() +
+      geom_sf(data = bc_bound()) +
+      geom_sf(data = geo_data, aes(fill = value), colour = "white", lwd = .2) +
+      geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 4) +
+      labs(x = NULL, y = NULL,
+           caption = "Unadjusted - 3 Month Moving Average",
+           title = "Unemployment Rate (%)",
+           subtitle = "by Census Metropolitan Area") +
+      scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
+      theme_minimal() +
+      theme(
+        text = element_text(size = 16, family = "BCSans"),
+        # legend.title = element_text(size = 11),
+        # legend.text = element_text(size = 10),
+        plot.caption = element_text(hjust = 0.7),
+        panel.grid.major = element_line(colour = "transparent"),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face="bold"),
+        plot.subtitle = element_text(hjust = 0.5)
+      )
+    
+  })
+  
   ## Tab 1: Data tables ---- 
   
   ### Datatable ----
   
-  selected_table <- reactive(
+  ## Update selectInput to summary when Data tables tab is selected
+  observe({
+    
+    if(input$tabs == "Data tables") {
+      updateSelectInput(session, inputId = "select_data_table", selected = "summary")
+    } else {
+      return()
+    }
+    
+  })
+ 
+  selected_table <- reactive({
+    
     input$select_data_table
-  )
+    
+  })
   
   #### Table heading ----
   output$table_name <- renderUI({
     
-    if(selected_table() %in% c("region", "cma") & input$select_data_type == "Unadjusted") {
+    if(selected_table() == "default") {
+      return()
+    }
+    
+    else if(selected_table() %in% c("region", "cma") & input$select_data_type == "Unadjusted") {
       tags$legend(h2(names(choices_list[choices_list == selected_table()])),
                   h3(input$select_data_type, "- 3 Month Moving Average"))
       
@@ -321,8 +617,12 @@ server <- function(input, output, session) {
   #### Get table data ----
   table_reactive <- reactive({
     
+    if(selected_table() == "default") {
+      t <- NULL
+    }
+    
     ## Read cansim data - method varies for some tables
-    if(selected_table() == "summary"){
+    else if(selected_table() == "summary"){
       t <- get_summary_table() 
     }
     
@@ -357,7 +657,11 @@ server <- function(input, output, session) {
     ## Note to display if table is not available for a selected data type:
     zero_data_note <- paste0("<div align = 'left'>", input$select_data_type, " data not available. Select another data type from the left.</div>")
     
-    if(selected_table() == "summary") {
+    if(selected_table() == "default") {
+      DT::datatable(NULL)
+    }
+    
+    else if(selected_table() == "summary") {
       
       print_summary_table(table_reactive()  %>%
                             filter(data_type == input$select_data_type),
@@ -424,7 +728,7 @@ server <- function(input, output, session) {
     }
     
   })
-  
+
   ### YTD avg table ----
   
   #### Table heading ----
@@ -432,7 +736,7 @@ server <- function(input, output, session) {
     
     no_avg_list <- dt_details %>% filter(is.na(include_avg_pct_chg)) %>% pull(table_id)
     
-    if(selected_table() %in% no_avg_list | input$select_data_type == "Annual"){ 
+    if(selected_table() %in% c("default", no_avg_list) | input$select_data_type == "Annual"){ 
       
       NULL 
       
@@ -449,7 +753,7 @@ server <- function(input, output, session) {
     
     no_avg_list <- dt_details %>% filter(is.na(include_avg_pct_chg)) %>% pull(table_id)
     
-    if(selected_table() %in% no_avg_list | input$select_data_type == "Annual"){ 
+    if(selected_table() %in% c("default", no_avg_list) | input$select_data_type == "Annual"){ 
       DT::datatable(NULL) 
     
     } else {
@@ -495,6 +799,11 @@ server <- function(input, output, session) {
   
   ### Data type radio ----
   observe({
+    
+    if(selected_table() == "default") {
+      return()
+    }
+    
     x <- table_reactive() %>% pull(data_type) %>% unique()
     
     # Can also set the label and select items
@@ -512,7 +821,10 @@ server <- function(input, output, session) {
       paste0(selected_table(), "_lfs_results.csv")
     },
     content = function(file_lfs) {
-      write.csv(table_reactive(), file_lfs, row.names = FALSE, na = "")
+      if(selected_table() == "default") table <- data.frame(NULL)
+      else table <- table_reactive()
+      
+      write.csv(table, file_lfs, row.names = FALSE, na = "")
     }
   )
   

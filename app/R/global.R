@@ -13,12 +13,21 @@ library(scales)       ## for label_percent() in plots
 library(DiagrammeR)   ## for flow chart
 library(dygraphs)
 library(xts)
-library(bcstatslinks)
+library(bcstatslinks) ## for bc stats app link drop down
+library(bcdata) ## for maps
+library(sf) ## for maps
+library(bcmaps) ## for maps
+library(rmapshaper) ## for maps
+library(viridis) ## for maps
 
 options(scipen = 999999999)  ## so chart axes read properly
 
 ### vectors and metadata ----
 vectors <- qs::qread("vector_metadata.qs")
+
+### spatial data for maps ----
+economic_regions <- qs::qread("economic_regions.qs")
+cmas <- qs::qread("cmas.qs")
 
 ## Load starting data ----
 hl_stats_meta <- data.frame(
@@ -84,7 +93,7 @@ dt_details <- tibble::tribble(
                        "industry",                                             "BC Employment by Industry", "north_american_industry_classification_system_naics",                 TRUE,             TRUE,         FALSE,
                      "occupation",                     "BC Employment and Unemployment Rate by Occupation",                                               "label",                 TRUE,            FALSE,         FALSE,
                          "region",                         "BC Employment and Unemployment Rate by Region",                                               "label",                   NA,            FALSE,         FALSE,
-                            "cma",        "BC Employment and Unemployment Rate by Census Metropoitan Area",                                               "label",                   NA,            FALSE,         FALSE,
+                            "cma",       "BC Employment and Unemployment Rate by Census Metropolitan Area",                                               "label",                   NA,            FALSE,         FALSE,
                             "cow",                                      "BC Employment by Class of Worker",                                     "class_of_worker",                 TRUE,             TRUE,         FALSE
                 )
 
@@ -114,6 +123,25 @@ table_captions <- tibble::tribble(
                                 "cma", "NOTE: Revised in January 2021 to reflect 2016 Census population and 2016 Standard Geographic Classification.",
                                 "cow", ""
                     )
+
+## BCStats Chart Theme ----
+bcstats_chart_theme <-
+  theme_bw() +
+  theme(
+    panel.border = element_rect(colour="white"),
+    text = element_text(size = 16, family = "BCSans"),
+    plot.title = element_text(face="bold"),
+    legend.position="bottom",
+    legend.justification=c(1,0),
+    # legend.title = element_text(size=12),
+    # legend.text = element_text(size=12),
+    axis.line = element_line(colour="black"),
+   # axis.title = element_text(size=15),
+   # axis.text = element_text(size=12),
+    plot.caption = element_text(hjust = 0),
+    plot.caption.position = "plot"
+    
+  )
 
 
 

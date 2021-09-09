@@ -289,7 +289,7 @@ print_summary_table <- function(data, zero_data_note) {
                                                language = list(zeroRecords = zero_data_note)
                                 ),
                                 rownames = FALSE,
-                                colnames = c("INDICATOR", "CURRENT MONTH", "PREVIOUS MONTH", "SAME MONTH ONE YEAR AGO", "CHANGE FROM PREVIOUS MONTH", "CHANGE FROM SAME MONTH PREVIOUS YEAR" ),
+                                colnames = c("INDICATOR", "CURRENT MONTH", "PREVIOUS MONTH", "SAME MONTH PREVIOUS YEAR", "CHANGE FROM PREVIOUS MONTH", "CHANGE FROM SAME MONTH PREVIOUS YEAR" ),
                                 caption = tags$caption(style = 'caption-side: bottom; text-align: left;',
                                                        HTML(table_captions %>% filter(table_id == "summary") %>% pull(caption)))
                                )
@@ -322,7 +322,7 @@ print_summary_table <- function(data, zero_data_note) {
                                                  language = list(zeroRecords = zero_data_note)
                                   ),
                                   rownames = FALSE,
-                                  colnames = c("INDICATOR", "CURRENT MONTH", "PREVIOUS MONTH", "SAME MONTH ONE YEAR AGO", "CHANGE FROM PREVIOUS MONTH", "CHANGE FROM SAME MONTH PREVIOUS YEAR" ),
+                                  colnames = c("INDICATOR", "CURRENT MONTH", "PREVIOUS MONTH", "SAME MONTH PREVIOUS YEAR", "CHANGE FROM PREVIOUS MONTH", "CHANGE FROM SAME MONTH PREVIOUS YEAR" ),
                                   escape = FALSE,
                                   class = 'cell-border stripe',
                                   caption = tags$caption(style = 'caption-side: bottom; text-align: left;',
