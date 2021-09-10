@@ -111,8 +111,7 @@ ui <- function(req) {
                                                     radioButtons("emp_m_or_y", 
                                                                  label = NULL,
                                                                  choices = c("Change from previous month" = "mom",
-                                                                             "Change from same month, previous year" = "yoy",
-                                                                             "Current values" = "all"),
+                                                                             "Change from same month, previous year" = "yoy"),
                                                                  selected = "mom", 
                                                                  inline = TRUE),
                                                     br(),
@@ -122,8 +121,7 @@ ui <- function(req) {
                                                     radioButtons("unemp_m_or_y", 
                                                                  label = NULL,
                                                                  choices = c("Change from previous month" = "mom",
-                                                                             "Change from same month, previous year" = "yoy",
-                                                                             "Current values" = "all"),
+                                                                             "Change from same month, previous year" = "yoy"),
                                                                  selected = "mom", 
                                                                  inline = TRUE),
                                                     br(),
@@ -133,8 +131,7 @@ ui <- function(req) {
                                                     radioButtons("part_m_or_y", 
                                                                  label = NULL,
                                                                  choices = c("Change from previous month" = "mom",
-                                                                             "Change from same month, previous year" = "yoy",
-                                                                             "Current values" = "all"),
+                                                                             "Change from same month, previous year" = "yoy"),
                                                                  selected = "mom", 
                                                                  inline = TRUE),
                                                     br(),
@@ -396,84 +393,41 @@ server <- function(input, output, session) {
                           input$hl_ag == "Unemployment Rate" ~ input$unemp_m_or_y, 
                           input$hl_ag == "Participation Rate" ~ input$part_m_or_y)
       
+      data <- ag_reactive() %>%
+        select(-ref_date) %>%
+        pivot_wider(names_from = "date", values_from = "value") %>%
+        mutate(mom = Current - `Previous month`,
+               yoy = Current - `Same month, previous year`) %>%
+        pivot_longer(cols = c(mom, yoy), names_to = "comparison", values_to = "value") %>%
+        filter(comparison == m_or_y) %>%
+        mutate(vjust = ifelse(value > 0, 1.5, -1.5))
       
-      if(m_or_y == "all") {
-        
-        data <- ag_reactive()
-        
-        data$sex <- factor(data$sex, levels = c("Total", "Males", "Females"))
-        data$date <- factor(data$date, levels = c("Same month, previous year","Previous month","Current"))
-        data <- data %>% arrange(desc(sex), desc(date)) 
-        
-        label <- ifelse(str_detect(input$hl_ag, "Rate"),
-                        paste("BC", input$hl_ag, "(%) by Age and Gender"),
-                        paste("BC", input$hl_ag, "('000) by Age and Gender"))
-        
-        maxlim <- case_when(input$hl_ag == "Employment" ~ 500,
-                            input$hl_ag == "Unemployment Rate" ~ 5,
-                            input$hl_ag == "Participation Rate" ~ 10)
-        
-        angle <- ifelse(str_detect(input$hl_ag, "Rate"), 0, 25)
-        
-        colors <- RColorBrewer::brewer.pal(5, name = "Blues")[2:4]
-        names(colors) <- data %>% pull(date) %>% unique()
-        
-        p <- ggplot(data, aes(x = age_group, y = value, fill = date)) +
-          geom_col(position = position_dodge()) +
-          facet_wrap(facets = data$sex) +
-          labs(x = "", y = "", fill = "", title = label) +
-          geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1)),
-                    position = position_dodge(width = 0.9),
-                    size = 3, vjust = -1, hjust = 0.2, angle = angle) +
-          guides(fill = guide_legend(reverse = TRUE)) +
-          scale_y_continuous(expand = c(0,0), limits = c(0, max(data$value) + maxlim)) +
-          scale_fill_manual(values = colors) +
-          theme(axis.text.x=element_text(angle=25, hjust = 1),
-                plot.title = element_text(hjust = 0.5, face="bold"),
-                plot.subtitle = element_text(hjust = 0.5),
-                legend.position="bottom",
-                legend.justification=c(1,0),
-                text = element_text(size = 16, family = "BCSans"))
-      } else {
-        
-        data <- ag_reactive() %>%
-          select(-ref_date) %>%
-          pivot_wider(names_from = "date", values_from = "value") %>%
-          mutate(mom = Current - `Previous month`,
-                 yoy = Current - `Same month, previous year`) %>%
-          pivot_longer(cols = c(mom, yoy), names_to = "comparison", values_to = "value") %>%
-          filter(comparison == m_or_y) %>%
-          mutate(vjust = ifelse(value > 0, 1.5, -1.5))
-        
-        data$sex <- factor(data$sex, levels = c("Total", "Males", "Females"))
-        data <- data %>% arrange(desc(sex))
-        
-        label <- case_when(str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month (ppt)",
-                           str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year (ppt)",
-                           !str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month ('000)",
-                           !str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year ('000)")
-        
-        colors <- RColorBrewer::brewer.pal(5, name = "Blues")[2:4]
-        names(colors) <- data %>% pull(sex) %>% unique()
-        
-        p <- ggplot(data, aes(x = age_group, y = value, fill = sex)) +
-          geom_col(position = position_dodge(width = 0.5), width = 0.5) +
-          geom_hline(yintercept = 0) + 
-          labs(x = "", y = "", fill = "", 
-               title = paste("BC", input$hl_ag, "by Age and Gender"), 
-               subtitle = label) +
-          guides(fill = guide_legend(reverse = TRUE)) +
-          geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1), vjust = vjust),
-                    position = position_dodge(width = 0.5),
-                    size = 5) +
-          scale_fill_manual(values = colors) +
-          bcstats_chart_theme +
-          theme(plot.title = element_text(hjust = 0.5),
-                plot.subtitle = element_text(hjust = 0.5)) 
-        
-      }
-
-     
+      data$sex <- factor(data$sex, levels = c("Total", "Males", "Females"))
+      data <- data %>% arrange(desc(sex))
+      
+      label <- case_when(str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month (ppt)",
+                         str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year (ppt)",
+                         !str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month ('000)",
+                         !str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year ('000)")
+      
+      colors <- RColorBrewer::brewer.pal(5, name = "Blues")[2:4]
+      names(colors) <- data %>% pull(sex) %>% unique()
+      
+      p <- ggplot(data, aes(x = age_group, y = value, fill = sex)) +
+        geom_col(position = position_dodge(width = 0.5), width = 0.5) +
+        geom_hline(yintercept = 0) + 
+        labs(x = "", y = "", fill = "", 
+             title = paste("BC", input$hl_ag, "by Age and Gender"), 
+             subtitle = label) +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1), vjust = vjust),
+                  position = position_dodge(width = 0.5),
+                  size = 5) +
+        scale_fill_manual(values = colors) +
+        bcstats_chart_theme +
+        theme(plot.title = element_text(hjust = 0.5),
+              plot.subtitle = element_text(hjust = 0.5)) 
+      
       p
 
     }) 
