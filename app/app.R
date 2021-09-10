@@ -652,7 +652,7 @@ server <- function(input, output, session) {
       data <- data %>%
         filter(data_type == input$select_data_type) %>%
         arrange(desc(date)) %>%
-        select(-data_type, -date) %>%
+        select(ref_date, date, everything(), -data_type) %>%
         rename(`Reference Date` = ref_date) %>%
         rename_at(vars(-`Reference Date`), str_to_upper) %>%
         rename_at(vars(contains("RATE")), ~ paste0("(%)_", str_replace(., "_VALUE", ""))) %>%
@@ -670,7 +670,9 @@ server <- function(input, output, session) {
                     options = list(#dom = "lpt",info = FALSE, paging = TRUE, pagingType = "simple", 
                                    info = FALSE, paging = FALSE,
                                    searching = FALSE, scrollX = TRUE, scrollY = "275px",
-                                   columnDefs = list(list(className = 'dt-center', targets = "_all")),
+                                   columnDefs = list(list(className = 'dt-center', targets = "_all"),
+                                                     list(targets = 0, orderData = 1),
+                                                     list(targets = 1, visible = FALSE)),
                                    language = list(zeroRecords = zero_data_note)),
                     rownames = FALSE,
                     container = format_header(data),
