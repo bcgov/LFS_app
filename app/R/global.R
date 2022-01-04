@@ -79,22 +79,22 @@ formatted_date <- paste(month(curr_date, label = TRUE, abbr = FALSE), year(curr_
 ## Table Details for App ----
 
 dt_details <- tibble::tribble(
-                        ~table_id,                                                             ~table_name,                                             ~grouping, ~include_avg_pct_chg, ~include_pct_chg, ~include_diff,
-                        "summary",                                   "BC and Canada Labour Market Changes",                                                    NA,                   NA,               NA,            NA,
-                         "bc_lfd",                                       "BC Labour Market Key Indicators",                        "labour_force_characteristics",                 TRUE,             TRUE,         FALSE,
-                       "prov_emp",                                          "Total Employment by Province",                                             "geo_abb",                 TRUE,            FALSE,         FALSE,
-                "prov_emp_growth",                                     "Employment Growth (%) by Province",                                             "geo_abb",                   NA,             TRUE,         FALSE,
-                  "prov_emp_jobs",                          "Employment Growth (level change) by Province",                                             "geo_abb",                   NA,            FALSE,          TRUE,
-                    "prov_unempr",                                    "Unemployment Rates (%) by Province",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
-                      "prov_empr",                                      "Employment Rates (%) by Province",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
-                     "age_gender",                      "BC Employment and Unemployment by Age and Gender",                                               "label",                 TRUE,            FALSE,         FALSE,
-                "age_gender_rate","BC Employment, Unemployment, and Participation Rates by Age and Gender",                                               "label",                FALSE,            FALSE,         FALSE,
-                    "ftpt_gender",                           "BC Employment by Full-Time/Part-Time Status",                                               "label",                 TRUE,            FALSE,         FALSE,
-                       "industry",                                             "BC Employment by Industry", "north_american_industry_classification_system_naics",                 TRUE,             TRUE,         FALSE,
-                     "occupation",                     "BC Employment and Unemployment Rate by Occupation",                                               "label",                 TRUE,            FALSE,         FALSE,
-                         "region",                         "BC Employment and Unemployment Rate by Region",                                               "label",                   NA,            FALSE,         FALSE,
-                            "cma",       "BC Employment and Unemployment Rate by Census Metropolitan Area",                                               "label",                   NA,            FALSE,         FALSE,
-                            "cow",                                      "BC Employment by Class of Worker",                                     "class_of_worker",                 TRUE,             TRUE,         FALSE
+                        ~table_id,                                                               ~table_name,                                             ~grouping, ~include_avg_pct_chg, ~include_pct_chg, ~include_diff,
+                        "summary",                                   "B.C. and Canada Labour Market Changes",                                                    NA,                   NA,               NA,            NA,
+                         "bc_lfd",                                       "B.C. Labour Market Key Indicators",                        "labour_force_characteristics",                 TRUE,             TRUE,         FALSE,
+                       "prov_emp",                                            "Total Employment by Province",                                             "geo_abb",                 TRUE,            FALSE,         FALSE,
+                "prov_emp_growth",                                       "Employment Growth (%) by Province",                                             "geo_abb",                   NA,             TRUE,         FALSE,
+                  "prov_emp_jobs",                            "Employment Growth (level change) by Province",                                             "geo_abb",                   NA,            FALSE,          TRUE,
+                    "prov_unempr",                                      "Unemployment Rates (%) by Province",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
+                      "prov_empr",                                        "Employment Rates (%) by Province",                                             "geo_abb",                FALSE,            FALSE,         FALSE,
+                     "age_gender",                      "B.C. Employment and Unemployment by Age and Gender",                                               "label",                 TRUE,            FALSE,         FALSE,
+                "age_gender_rate","B.C. Employment, Unemployment, and Participation Rates by Age and Gender",                                               "label",                FALSE,            FALSE,         FALSE,
+                    "ftpt_gender",                           "B.C. Employment by Full-Time/Part-Time Status",                                               "label",                 TRUE,            FALSE,         FALSE,
+                       "industry",                                             "B.C. Employment by Industry", "north_american_industry_classification_system_naics",                 TRUE,             TRUE,         FALSE,
+                     "occupation",                     "B.C. Employment and Unemployment Rate by Occupation",                                               "label",                 TRUE,            FALSE,         FALSE,
+                         "region",                         "B.C. Employment and Unemployment Rate by Region",                                               "label",                   NA,            FALSE,         FALSE,
+                            "cma",       "B.C. Employment and Unemployment Rate by Census Metropolitan Area",                                               "label",                   NA,            FALSE,         FALSE,
+                            "cow",                                      "B.C. Employment by Class of Worker",                                     "class_of_worker",                 TRUE,             TRUE,         FALSE
                 )
 
   
@@ -104,7 +104,7 @@ names(choices_list) <- dt_details$table_name
 
 table_captions <- tibble::tribble(
                             ~table_id, ~caption,
-                            "summary", "NOTE: Employment rate is calculated as employment as a percent of the population aged 15 and older.",
+                            "summary", "NOTE: The employment rate is the number of employed persons expressed as a percentage of the population 15 years of age and over.",
                              "bc_lfd", "NOTE: Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",
                            "prov_emp", "",
                     "prov_emp_growth", "NOTE: Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",

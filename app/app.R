@@ -58,7 +58,7 @@ ui <- function(req) {
                                   labour market characteristics of the population of B.C.",
                                   br(),br(),
                                   "To zoom in on dates for the Employment, Unemployment Rate, and Participation Rate
-                                  charts under the TRENDS box, move the slider or select part of the chart with your mouse",
+                                  charts under the TRENDS box, move the slider or select part of the chart with your mouse.",
                                   br(), br(),
                                   "Learn more ", 
                                   tags$a("about the Labour Force Survey", 
@@ -348,8 +348,8 @@ server <- function(input, output, session) {
         data <- tseries()
         data <- xts(data, order.by = data$REF_DATE)
         label <- ifelse(str_detect(input$hl_ts, "Rate"),
-                        paste("BC", input$hl_ts, "(%)"),
-                        paste("BC", input$hl_ts, "('000)"))
+                        paste("B.C.", input$hl_ts, "(%)"),
+                        paste("B.C.", input$hl_ts, "('000)"))
 
         dygraph(data, main = label) %>%
           dyRangeSelector() %>%
@@ -417,7 +417,7 @@ server <- function(input, output, session) {
         geom_col(position = position_dodge(width = 0.5), width = 0.5) +
         geom_hline(yintercept = 0) + 
         labs(x = "", y = "", fill = "", 
-             title = paste("BC", input$hl_ag, "by Age and Gender"), 
+             title = paste("B.C.", input$hl_ag, "by Age and Gender"), 
              subtitle = label) +
         guides(fill = guide_legend(reverse = TRUE)) +
         geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1), vjust = vjust),
