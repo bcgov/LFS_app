@@ -29,7 +29,7 @@ ui <- function(req) {
                      a(href="https://www2.gov.bc.ca/gov/content/data/about-data-management/bc-stats",
                        img(src = "bcstats_logo_rev.png", title = "BC Stats", height = "80px", alt = "British Columbia - BC Stats"),
                        onclick="gtag"),
-                     h1("British Columbia - Labour Market Statistics", style="font-weight:400; color:white; margin: 5px 5px 0 18px;"),
+                     h1("Labour Market Statistics for British Columbia", style="font-weight:400; color:white; margin: 5px 5px 0 18px;"),
                      ## MODULE CODE
                      tags$div(style = "margin-left:auto; margin-right:0;",linkModUI('links'))
                    )
