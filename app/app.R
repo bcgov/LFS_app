@@ -451,7 +451,11 @@ server <- function(input, output, session) {
       select(vector, ref_date, value) %>%
       mutate(ref_date = ymd(ref_date)) %>%
       filter(ref_date %in% c(curr_date)) %>%
-      left_join(vectors_filt, by = "vector") 
+      left_join(vectors_filt, by = "vector") %>%
+      mutate(text_color = case_when(value > 4.7 ~ "white",
+                                    TRUE ~ "black"),
+             vjust = case_when(geo == "Kootenay" ~ 1,
+                               TRUE ~ 0.3))
     
     geo_data <- economic_regions %>%
       left_join(data, by = "geo") %>%
@@ -459,23 +463,26 @@ server <- function(input, output, session) {
     
     ggplot() +
       geom_sf(data = geo_data, aes(fill = value ), colour = "white", lwd = .2) +
-      geom_sf_text(data = geo_data, aes(label = geo_label), size = 4) +
+      geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5) +
       labs(x = NULL, y = NULL,
-           caption = "Unadjusted - 3 Month Moving Average",
+           caption = "Unadjusted\n3 Month Moving Average",
            title = "Unemployment Rate (%)",
            subtitle = "by Region") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
+      scale_color_manual(values = c("white" = "#828282", "black" = "black"))+
+      guides(color = FALSE) +
       theme_minimal() +
       theme(
         text = element_text(size = 16, family = "BCSans"),
         # legend.title = element_text(size = 11),
         # legend.text = element_text(size = 10),
-        plot.caption = element_text(hjust = 0.7),
+        plot.caption = element_text(hjust = 0.5),
         panel.grid.major = element_line(colour = "transparent"),
         axis.text = element_blank(),
         plot.title = element_text(hjust = 0.5, face="bold"),
-        plot.subtitle = element_text(hjust = 0.5)
-      )
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.margin = margin(t = 0, r = 0, b = 20, l = 0, unit = "pt")
+      ) 
     
     
   })  
@@ -509,9 +516,9 @@ server <- function(input, output, session) {
     ggplot() +
       geom_sf(data = bc_bound()) +
       geom_sf(data = geo_data, aes(fill = value), colour = "white", lwd = .2) +
-      geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 4) +
+      geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5) +
       labs(x = NULL, y = NULL,
-           caption = "Unadjusted - 3 Month Moving Average",
+           caption = "Unadjusted\n3 Month Moving Average",
            title = "Unemployment Rate (%)",
            subtitle = "by Census Metropolitan Area") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
@@ -520,11 +527,12 @@ server <- function(input, output, session) {
         text = element_text(size = 16, family = "BCSans"),
         # legend.title = element_text(size = 11),
         # legend.text = element_text(size = 10),
-        plot.caption = element_text(hjust = 0.7),
+        plot.caption = element_text(hjust = 0.5),
         panel.grid.major = element_line(colour = "transparent"),
         axis.text = element_blank(),
         plot.title = element_text(hjust = 0.5, face="bold"),
-        plot.subtitle = element_text(hjust = 0.5)
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.margin = margin(t = 0, r = 0, b = 20, l = 0, unit = "pt")
       )
     
   })
