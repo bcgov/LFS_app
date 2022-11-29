@@ -20,16 +20,17 @@ were employed or unemployed.
 
 **Employed**  
 
-Employed persons are those who, during the reference week, either: 
-1. did any work at all, or 
-2. had a job but were not at work due to own illness or disability, personal or family responsibilities, bad weather, labour dispute, vacation, or other reason not specified above (excluding persons whose
-job attachment was to a job to start at a definite date in the future).  
+Employed persons are those who, during the reference week, either:  
+
+1. did any work at all, or  
+2. had a job but were not at work due to own illness or disability, personal or family responsibilities, bad weather, labour dispute, vacation, or other reason not specified above (excluding persons whose job attachment was to a job to start at a definite date in the future).  
 
 **Unemployment**  
 
-Unemployed persons are those who, during the reference week, either: 
-1. were without work, had actively looked for work in the past four weeks (ending with the reference week), and were available for work; or 
-2. had not actively looked for work in the past four weeks but had been on layoff and were available for work; or 
+Unemployed persons are those who, during the reference week, either:  
+
+1. were without work, had actively looked for work in the past four weeks (ending with the reference week), and were available for work; or  
+2. had not actively looked for work in the past four weeks but had been on layoff and were available for work; or  
 3. had not actively looked for work in the past four weeks but had a new job to start in four weeks or less from the reference week, and were available for work.  
 
 **Unemployment Rate**  
