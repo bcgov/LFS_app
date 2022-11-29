@@ -466,7 +466,7 @@ server <- function(input, output, session) {
       geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5) +
       labs(x = NULL, y = NULL,
            caption = "Unadjusted\n3 Month Moving Average",
-           title = "Unemployment Rate (%)",
+           title = "Unemployment Rate",
            subtitle = "by Region") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
       scale_color_manual(values = c("white" = "#828282", "black" = "black"))+
@@ -481,7 +481,7 @@ server <- function(input, output, session) {
         axis.text = element_blank(),
         plot.title = element_text(hjust = 0.5, face="bold"),
         plot.subtitle = element_text(hjust = 0.5),
-        plot.margin = margin(t = 0, r = 0, b = 20, l = 0, unit = "pt")
+        plot.margin = margin(t = 0, r = 0, b = 20, l = 5, unit = "pt")
       ) 
     
     
@@ -519,7 +519,7 @@ server <- function(input, output, session) {
       geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5) +
       labs(x = NULL, y = NULL,
            caption = "Unadjusted\n3 Month Moving Average",
-           title = "Unemployment Rate (%)",
+           title = "Unemployment Rate",
            subtitle = "by Census Metropolitan Area") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
       theme_minimal() +
@@ -532,7 +532,7 @@ server <- function(input, output, session) {
         axis.text = element_blank(),
         plot.title = element_text(hjust = 0.5, face="bold"),
         plot.subtitle = element_text(hjust = 0.5),
-        plot.margin = margin(t = 0, r = 0, b = 20, l = 0, unit = "pt")
+        plot.margin = margin(t = 0, r = 0, b = 20, l = 5, unit = "pt")
       )
     
   })
