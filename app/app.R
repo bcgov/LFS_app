@@ -462,7 +462,7 @@ server <- function(input, output, session) {
       mutate(geo_label = str_wrap(str_extract(geo, "^([^,])+"), width = 10))
     
     ggplot() +
-      geom_sf(data = geo_data, aes(fill = value ), colour = "white", lwd = .2) +
+      geom_sf(data = geo_data, aes(fill = value ), colour = "white", lwd = .05) +
       geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5) +
       labs(x = NULL, y = NULL,
            caption = "Unadjusted\n3 Month Moving Average",
@@ -514,8 +514,8 @@ server <- function(input, output, session) {
                                geo == "Vancouver" ~ 0.05))
     
     ggplot() +
-      geom_sf(data = bc_bound()) +
-      geom_sf(data = geo_data, aes(fill = value), colour = "white", lwd = .2) +
+      geom_sf(data = bc, lwd = 0.05) +
+      geom_sf(data = geo_data, aes(fill = value), colour = "white", lwd = .05) +
       geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5) +
       labs(x = NULL, y = NULL,
            caption = "Unadjusted\n3 Month Moving Average",

@@ -28,6 +28,7 @@ vectors <- qs::qread("vector_metadata.qs")
 ### spatial data for maps ----
 economic_regions <- qs::qread("economic_regions.qs")
 cmas <- qs::qread("cmas.qs")
+bc <- qs::qread("bc.qs")
 
 ## Load starting data ----
 hl_stats_meta <- data.frame(

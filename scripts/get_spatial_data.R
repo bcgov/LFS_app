@@ -1,7 +1,9 @@
+library(tidyverse)
 library(bcdata)
 library(sf)
 library(bcmaps)
 library(rmapshaper)
+library(janitor)
 #library(viridis)
 
 #economic regions spatial data from the B.C. Data Catalogue using the bcdata package
@@ -19,7 +21,8 @@ economic_regions <-
                          economic_region_id == 5980 ~ "Northeast")) %>%
   group_by(geo) %>%
   summarise() %>%
-  rmapshaper::ms_clip(bcmaps::bc_bound(class = "sf"))
+  rmapshaper::ms_clip(bcmaps::bc_bound(class = "sf")) %>%
+  ms_simplify(keep = 0.075, sys = TRUE)
 
 ## cmas 
 # census metropolitan areas spatial data from the B.C. Data Catalogue using the bcdata package 
@@ -28,7 +31,20 @@ cmas <-
   bcdc_get_data("a6fb34b7-0937-4718-8f1f-43dba2c0f407") %>%
   clean_names() %>%
   filter(census_metro_area_name %in% c("Kelowna", "Abbotsford - Mission", "Vancouver", "Victoria")) %>%
-  mutate(geo = str_remove_all(census_metro_area_name, " "))
+  mutate(geo = str_remove_all(census_metro_area_name, " ")) 
+
+bc <- bc_bound() %>%
+  select(-island) %>%
+  mutate(id = row_number()) %>%
+  ms_simplify(keep = 0.25, sys = TRUE)
 
 qs::qsave(economic_regions, here::here("app", "economic_regions.qs"))
 qs::qsave(cmas, here::here("app", "cmas.qs"))
+qs::qsave(bc, here::here("app", "bc.qs"))
+
+## health authorities
+# https://catalogue.data.gov.bc.ca/dataset/7bc6018f-bb4f-4e5d-845e-c529e3d1ac3b
+has <-
+  bcdc_get_data('7bc6018f-bb4f-4e5d-845e-c529e3d1ac3b', resource = 'dfd14c9b-45f8-4a7e-ad42-9a881778e417') %>%
+  clean_names() 
+
