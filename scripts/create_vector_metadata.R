@@ -19,9 +19,8 @@ industry_data_annual <- get_cansim("14-10-0023") %>% clean_names()
 
 ### Occupation ----
 ## Employment, Unemployment Rate
-occupation_data_monthly <- get_cansim("14-10-0296") %>% clean_names()
-occupation_data_annual <- get_cansim("14-10-0335") %>% clean_names()
-
+occupation_data_monthly <- get_cansim("14-10-0421") %>% clean_names()
+occupation_data_annual <- get_cansim("14-10-0416") %>% clean_names()
 
 ### Class of Worker ----
 ## Employment
@@ -80,7 +79,8 @@ summary_vectors <- lfs_data_monthly %>%
 ### BC Labour Force Data ----
 
 bc_lfd_m <- lfs_data_monthly %>%
-  filter(vector %in% (bc_summary_vectors %>% 
+  filter(geo == "British Columbia") %>% 
+  filter(vector %in% (summary_vectors %>% 
                         filter(labour_force_characteristics %in% 
                                  c("Labour force", "Employment", "Unemployment", "Unemployment rate", "Participation rate")) %>%
                         pull(vector))) %>%
@@ -373,28 +373,28 @@ industry_a <- industries_df %>%
 
 ## crosswalk between NOC in data and cleaned
 occupations_df <- data.frame(
-  occupations = c("Total, all occupations", 
-                  "Management occupations [0]",   
-                  "Business, finance and administration occupations [1]", 
-                  "Natural and applied sciences and related occupations [2]", 
-                  "Health occupations [3]", 
-                  "Occupations in education, law and social, community and government services [4]", 
-                  "Occupations in art, culture, recreation and sport [5]",
-                  "Sales and service occupations [6]",
-                  "Trades, transport and equipment operators and related occupations [7]",
-                  "Natural resources, agriculture and related production occupations [8]", 
-                  "Occupations in manufacturing and utilities [9]"),
+  occupations = c("Total, all occupations [00-95]", 
+                  "Management occupations [00, 10, 20, 30, 40, 50, 60, 70, 80, 90]",   
+                  "Business, finance and administration occupations, except management [11-14]", 
+                  "Natural and applied sciences and related occupations, except management [21-22]", 
+                  "Health occupations, except management [31-33]", 
+                  "Occupations in education, law and social, community and government services, except management [41-45]", 
+                  "Occupations in art, culture, recreation and sport, except management [51-55]",
+                  "Sales and service occupations, except management [62-65]",
+                  "Trades, transport and equipment operators and related occupations, except management [72-75]",
+                  "Natural resources, agriculture and related production occupations, except management [82-85]", 
+                  "Occupations in manufacturing and utilities, except management [92-95]"),
   occupations_clean = c("All occupations", 
                         "Management occupations",
-                        "Business, finance and administration occupations",
-                        "Natural and applied sciences and related occupations",
-                        "Health occupations",
-                        "Occupations in education, law and social, community and government services",
-                        "Occupations in art, culture, recreation and sport",
-                        "Sales and service occupations",
-                        "Trades, transport and equipment operators and related occupations",
-                        "Natural resources, agriculture and related production occupations",
-                        "Occupations in manufacturing and utilities"))
+                        "Business, finance and administration occupations, except management",
+                        "Natural and applied sciences and related occupations, except management",
+                        "Health occupations, except management",
+                        "Occupations in education, law and social, community and government services, except management",
+                        "Occupations in art, culture, recreation and sport, except management",
+                        "Sales and service occupations, except management",
+                        "Trades, transport and equipment operators and related occupations, except management",
+                        "Natural resources, agriculture and related production occupations, except management",
+                        "Occupations in manufacturing and utilities, except management"))
 
 occupation_m <- occupations_df %>%
   left_join(occupation_data_monthly, by = c("occupations" = "national_occupational_classification_noc")) %>%
@@ -412,8 +412,6 @@ occupation_m <- occupations_df %>%
          national_occupational_classification_noc = occupations_clean,
          class_of_worker) %>%
   unique()
-
-
 
 occupation_a <- occupations_df %>%
   left_join(occupation_data_annual, by = c("occupations" = "national_occupational_classification_noc")) %>%
