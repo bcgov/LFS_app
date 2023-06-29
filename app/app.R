@@ -311,8 +311,8 @@ server <- function(input, output, session) {
     
     data1 <<- data %>%
       rbind(data.frame(label = "Not in \n Labour Force", 
-                       current = data1 %>% filter(label == "Population") %>% pull(current) - 
-                         data1 %>% filter(label == "Labour Force") %>% pull(current))) %>%
+                       current = data %>% filter(label == "Population") %>% pull(current) - 
+                         data %>% filter(label == "Labour Force") %>% pull(current))) %>%
       mutate(current = prettyNum(current, big.mark = ","))
     
     data2 <<- hl_stats %>%
