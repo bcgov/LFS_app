@@ -305,11 +305,11 @@ server <- function(input, output, session) {
   ### Flowchart ----
   output$flow <- renderGrViz({
     
-    data1 <- hl_stats %>%
+    data <- hl_stats %>%
       filter(!str_detect(label, "Rate")) %>%
       select(label, current)
     
-    data1 <<- data1 %>%
+    data1 <<- data %>%
       rbind(data.frame(label = "Not in \n Labour Force", 
                        current = data1 %>% filter(label == "Population") %>% pull(current) - 
                          data1 %>% filter(label == "Labour Force") %>% pull(current))) %>%
