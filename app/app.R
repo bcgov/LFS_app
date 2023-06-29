@@ -357,6 +357,7 @@ server <- function(input, output, session) {
           dyShading(from = "1981-6-1", to = "1982-10-1") %>%
           dyShading(from = "1990-3-1", to = "1991-4-1") %>%
           dyShading(from = "2008-10-1", to = "2009-5-1") %>%
+          dyShading(from = "2020-3-1", to = "2020-5-1") %>%
           dyAxis("y") %>%
           dyOptions(colors = RColorBrewer::brewer.pal(8, "Set2"), drawGrid = FALSE)
           
