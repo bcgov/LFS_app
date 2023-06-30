@@ -62,16 +62,14 @@ climate, holidays, vacation periods, and cycles related to crops, production and
 noted that the seasonally adjusted series contain irregular as well as longer-term cyclical fluctuations.  
 
 
-**Source:** Extracted from **<a target = '_blank', href = 'https://www150.statcan.gc.ca/n1/en/catalogue/71-543-G'>Statistics Canada, Labour Force Survey, Definitions and Explanations</a>**.
-<br><br>
+**Source:** Extracted from [**Statistics Canada, Labour Force Survey, Definitions and Explanations**](https://www150.statcan.gc.ca/n1/en/catalogue/71-543-G). <br><br> 
 
 ### Open Licence
 
-Data obtained through this application is distributed under the **<a href='https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc'>Open Government License</a>**.
-<br><br>
+Data obtained through this application is distributed under the [**Open Government License**](https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc).  
+<br>
 
 ### GitHub Repository
 
-The GitHub repo for this app is: **<a target = '_blank', href='https://github.com/bcgov/LFS_app'>https://github.com/bcgov/LFS_app</a>**.
-<br><br>
+The GitHub repo for this app is: [**https://github.com/bcgov/LFS_app**](https://github.com/bcgov/LFS_app).<br><br>
 
