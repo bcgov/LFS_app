@@ -284,7 +284,7 @@ print_summary_table <- function(data, zero_data_note) {
                                                paging = FALSE, 
                                                searching = FALSE, 
                                                scrollX = TRUE, 
-                                               columnDefs = list(list(className = 'dt-left', targets = "0"),
+                                               columnDefs = list(list(className = 'dt-left', targets = 0),
                                                                  list(className = 'dt-head-center', targets = "_all")),
                                                language = list(zeroRecords = zero_data_note)
                                 ),
@@ -317,7 +317,7 @@ print_summary_table <- function(data, zero_data_note) {
                                                  paging = FALSE, 
                                                  searching = FALSE, 
                                                  scrollX = TRUE, 
-                                                 columnDefs = list(list(className = 'dt-left', targets = "0"),
+                                                 columnDefs = list(list(className = 'dt-left', targets = 0),
                                                                    list(className = 'dt-head-center', targets = "_all")),
                                                  language = list(zeroRecords = zero_data_note)
                                   ),
