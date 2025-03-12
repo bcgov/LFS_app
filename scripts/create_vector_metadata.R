@@ -45,14 +45,14 @@ cow_data_annual <- get_cansim("14-10-0027")%>% clean_names()
 ### Economic Region ----
 ## Employment, Unemployment Rate
 ## 3 month moving average, unadjusted
-er_data_monthly <- get_cansim("14-10-0387") %>%  clean_names()
-er_data_annual <- get_cansim("14-10-0393") %>% clean_names()
+er_data_monthly <- get_cansim("14-10-0462") %>%  clean_names()
+er_data_annual <- get_cansim("14-10-0464") %>% clean_names()
 
 ### Census Metropolitan Area ----
 ## Employment, Unemployment Rate
 ## 3 month moving average, unadjusted
-cma_data_monthly <- get_cansim("14-10-0378") %>% clean_names()
-cma_data_annual <- get_cansim("14-10-0385") %>% clean_names()
+cma_data_monthly <- get_cansim("14-10-0458") %>% clean_names()
+cma_data_annual <- get_cansim("14-10-0461") %>% clean_names()
 
 
 ## Get Cansim Vectors ----
@@ -65,7 +65,7 @@ cma_data_annual <- get_cansim("14-10-0385") %>% clean_names()
 ## geo_abb - provincial abbreviation
 ## geo - name of geography (province, region, cma, "Canada"),
 ## age_group
-## sex
+## gender
 ## north_american_industry_classification_system_naics
 ## national occupational_classificaiton_noc
 ## class_of_worker
@@ -77,7 +77,7 @@ summary_vectors <- lfs_data_monthly %>%
   filter(labour_force_characteristics %in%
            c("Population", "Labour force", "Employment", "Unemployment", 
              "Employment rate", "Unemployment rate", "Participation rate")) %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   filter(statistics == "Estimate") %>%
   filter(data_type %in% c("Seasonally adjusted", "Unadjusted")) %>%
@@ -85,7 +85,7 @@ summary_vectors <- lfs_data_monthly %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>%
@@ -103,7 +103,7 @@ bc_lfd_m <- lfs_data_monthly %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>%
@@ -114,14 +114,14 @@ bc_lfd_a <- lfs_data_annual %>%
   filter(labour_force_characteristics %in%
            c("Labour force", "Employment", "Unemployment", 
              "Unemployment rate", "Participation rate")) %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   mutate(table = "bc_lfd",
          data_type = "Annual",
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -131,7 +131,7 @@ bc_lfd_a <- lfs_data_annual %>%
 
 prov_emp_m <- lfs_data_monthly %>% 
   filter(labour_force_characteristics == "Employment") %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   filter(statistics == "Estimate") %>%
   filter(data_type %in% c("Seasonally adjusted", "Unadjusted")) %>%
@@ -139,7 +139,7 @@ prov_emp_m <- lfs_data_monthly %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -147,14 +147,14 @@ prov_emp_m <- lfs_data_monthly %>%
 
 prov_emp_a <- lfs_data_annual %>% 
   filter(labour_force_characteristics == "Employment") %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   mutate(table = "prov_emp",
          data_type = "Annual",
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -164,7 +164,7 @@ prov_emp_a <- lfs_data_annual %>%
 
 prov_unempr_m <- lfs_data_monthly %>% 
   filter(labour_force_characteristics == "Unemployment rate") %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   filter(statistics == "Estimate") %>%
   filter(data_type %in% c("Seasonally adjusted", "Unadjusted"))%>%
@@ -172,7 +172,7 @@ prov_unempr_m <- lfs_data_monthly %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -180,14 +180,14 @@ prov_unempr_m <- lfs_data_monthly %>%
 
 prov_unempr_a <- lfs_data_annual %>% 
   filter(labour_force_characteristics == "Unemployment rate") %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   mutate(table = "prov_unempr",
          data_type = "Annual",
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -197,7 +197,7 @@ prov_unempr_a <- lfs_data_annual %>%
 
 prov_empr_m <- lfs_data_monthly %>% 
   filter(labour_force_characteristics == "Employment rate") %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   filter(statistics == "Estimate") %>%
   filter(data_type %in% c("Seasonally adjusted", "Unadjusted")) %>%
@@ -205,7 +205,7 @@ prov_empr_m <- lfs_data_monthly %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -213,14 +213,14 @@ prov_empr_m <- lfs_data_monthly %>%
 
 prov_empr_a <- lfs_data_annual %>% 
   filter(labour_force_characteristics == "Employment rate") %>% 
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   mutate(table = "prov_empr",
          data_type = "Annual",
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -238,11 +238,11 @@ age_gender_m <- lfs_data_monthly %>%
   filter(data_type %in% c("Unadjusted", "Seasonally adjusted")) %>%
   mutate(table = ifelse(str_detect(labour_force_characteristics, "rate"),"age_gender_rate","age_gender"),
          age_group = ifelse(age_group == "15 years and over", "All Ages", as.character(age_group)),
-         sex = ifelse(sex == "Both sexes", "Total", as.character(sex)),
+         gender = ifelse(gender == "Total - Gender", "Total", as.character(gender)),
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>%
@@ -257,11 +257,11 @@ age_gender_a <- lfs_data_annual %>%
   mutate(table = ifelse(str_detect(labour_force_characteristics, "rate"),"age_gender_rate","age_gender"),
          data_type = "Annual",
          age_group = ifelse(age_group == "15 years and over", "All Ages", as.character(age_group)),
-         sex = ifelse(sex == "Both sexes", "Total", as.character(sex)),
+         gender = ifelse(gender == "Total - Gender", "Total", as.character(gender)),
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>%
@@ -278,11 +278,11 @@ ftpt_gender_m <- lfs_data_monthly %>%
   filter(data_type %in% c("Unadjusted", "Seasonally adjusted")) %>%
   mutate(table = "ftpt_gender",
          labour_force_characteristics = ifelse(labour_force_characteristics == "Employment", "Total", as.character(labour_force_characteristics)),
-         sex = ifelse(sex == "Both sexes", "Total", as.character(sex)),
+         gender = ifelse(gender == "Total - Gender", "Total", as.character(gender)),
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -296,11 +296,11 @@ ftpt_gender_a <- lfs_data_annual %>%
   mutate(table = "ftpt_gender",
          data_type = "Annual",
          labour_force_characteristics = ifelse(labour_force_characteristics == "Employment", "Total", as.character(labour_force_characteristics)),
-         sex = ifelse(sex == "Both sexes", "Total", as.character(sex)),
+         gender = ifelse(gender == "Total - Gender", "Total", as.character(gender)),
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -358,10 +358,10 @@ industry_m <- industries_df %>%
          labour_force_characteristics = "Employment",
          geo_abb = "BC",
          age_group = "15 years and over",
-         sex = "Both sexes",
+         gender = "Total - Gender",
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics = industries_clean,
          national_occupational_classification_noc,
          class_of_worker) %>%
@@ -372,13 +372,13 @@ industry_a <- industries_df %>%
   filter(geo == "British Columbia") %>%
   filter(labour_force_characteristics == "Employment") %>%
   filter(age_group == "15 years and over") %>%
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   mutate(table = "industry",
          data_type = "Annual",
          geo_abb = "BC",
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics = industries_clean,
          national_occupational_classification_noc,
          class_of_worker) %>%
@@ -415,14 +415,14 @@ occupation_m <- occupations_df %>%
   left_join(occupation_data_monthly, by = c("occupations" = "national_occupational_classification_noc")) %>%
   filter(geo == "British Columbia") %>%
   filter(labour_force_characteristics %in% c("Employment", "Unemployment rate")) %>%
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   mutate(table = "occupation",
          data_type = "Unadjusted",
          geo_abb = "BC",
          age_group = "15 years and over",
          north_american_industry_classification_system_naics = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc = occupations_clean,
          class_of_worker) %>%
@@ -432,14 +432,14 @@ occupation_a <- occupations_df %>%
   left_join(occupation_data_annual, by = c("occupations" = "national_occupational_classification_noc")) %>%
   filter(geo == "British Columbia") %>%
   filter(labour_force_characteristics %in% c("Employment", "Unemployment rate")) %>%
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   mutate(table = "occupation",
          data_type = "Annual",
          geo_abb = "BC",
          age_group = "15 years and over",
          north_american_industry_classification_system_naics = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc = occupations_clean,
          class_of_worker) %>%
@@ -456,11 +456,11 @@ region_m <- er_data_monthly %>%
          geo = str_remove_all(geo, ", British Columbia"),
          geo_abb = "BC",
          age_group = "15 years and over",
-         sex = "Both sexes",
+         gender = "Total - Gender",
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -475,11 +475,11 @@ region_a <- er_data_annual %>%
          geo = str_remove_all(geo, ", British Columbia"),
          geo_abb = "BC",
          age_group = "15 years and over",
-         sex = "Both sexes",
+         gender = "Total - Gender",
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -490,7 +490,7 @@ region_a <- er_data_annual %>%
 cma_m <- cma_data_monthly %>%
   filter(str_detect(geo, "British Columbia")) %>%
   filter(labour_force_characteristics %in% c("Employment", "Unemployment rate")) %>%
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   mutate(table = "cma",
          data_type = "Unadjusted",
@@ -499,7 +499,7 @@ cma_m <- cma_data_monthly %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -508,7 +508,7 @@ cma_m <- cma_data_monthly %>%
 cma_a <- cma_data_annual %>% 
   filter(str_detect(geo, "British Columbia")) %>%
   filter(labour_force_characteristics %in% c("Employment", "Unemployment rate")) %>%
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(age_group == "15 years and over") %>%
   mutate(table = "cma",
          data_type =  "Annual",
@@ -517,7 +517,7 @@ cma_a <- cma_data_annual %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = NA) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -527,7 +527,7 @@ cma_a <- cma_data_annual %>%
 cow_m <- cow_data_monthly %>%
   filter(geo == "British Columbia") %>%
   filter(statistics == "Estimate") %>%
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(data_type %in% c("Unadjusted", "Seasonally adjusted")) %>%
   mutate(table = "cow",
          labour_force_characteristics = "Employment",
@@ -536,7 +536,7 @@ cow_m <- cow_data_monthly %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = as.character(class_of_worker)) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -544,7 +544,7 @@ cow_m <- cow_data_monthly %>%
 
 cow_a <- cow_data_annual %>% 
   filter(geo == "British Columbia") %>%
-  filter(sex == "Both sexes") %>%
+  filter(gender == "Total - Gender") %>%
   filter(north_american_industry_classification_system_naics == "Total employed, all industries") %>%
   filter(!str_detect(class_of_worker, "paid")) %>%
   mutate(table = "cow",
@@ -555,7 +555,7 @@ cow_a <- cow_data_annual %>%
          north_american_industry_classification_system_naics = NA,
          national_occupational_classification_noc = NA,
          class_of_worker = as.character(class_of_worker)) %>%
-  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, sex, 
+  select(vector, table, labour_force_characteristics, data_type, geo_abb, geo, age_group, gender, 
          north_american_industry_classification_system_naics,
          national_occupational_classification_noc,
          class_of_worker) %>% 
@@ -586,7 +586,8 @@ vector_metadata <- bind_rows(
   cma_m,
   cma_a,
   cow_m,
-  cow_a)
+  cow_a) %>%
+  mutate(gender = ifelse(gender == "Total - Gender", "Total", as.character(gender)))
 
 ## Create factors ----
 
@@ -605,7 +606,7 @@ vector_metadata$geo <- factor(vector_metadata$geo,
                       levels = c("British Columbia", "Alberta", "Saskatchewan", "Manitoba", 
                                  "Ontario", "Quebec", "New Brunswick", "Nova Scotia", 
                                  "Prince Edward Island", "Newfoundland and Labrador", "Canada",
-                                 "Vancouver", "Victoria", "Abbotsford-Mission", "Kelowna",
+                                 "Victoria", "Nanaimo", "Vancouver", "Abbotsford-Mission", "Chilliwack", "Kelowna", "Kamloops",
                                  "Vancouver Island and Coast", "Lower Mainland-Southwest", 
                                  "Thompson-Okanagan", "Kootenay", "Cariboo", "North Coast and Nechako",
                                  "Northeast"))
@@ -613,8 +614,8 @@ vector_metadata$geo <- factor(vector_metadata$geo,
 vector_metadata$age_group <- factor(vector_metadata$age_group,
                             levels = c("15 years and over", "15 to 24 years", "25 to 54 years", "55 years and over", "All Ages"))
 
-vector_metadata$sex = factor(vector_metadata$sex,
-                     levels = c("Both sexes", "Males", "Females", "Total"))
+vector_metadata$gender = factor(vector_metadata$gender,
+                     levels = c("Men+", "Women+", "Total"))
 
 vector_metadata$north_american_industry_classification_system_naics <- factor(vector_metadata$north_american_industry_classification_system_naics,
                                                                       levels = c(NA, "All industries",
@@ -648,6 +649,7 @@ vector_metadata$national_occupational_classification_noc <- factor(vector_metada
                                                                       "Natural resources, agriculture and related production occupations, except management",         
                                                                       "Occupations in manufacturing and utilities, except management",
                                                                       "All occupations")) 
+
 vector_metadata$class_of_worker <- factor(vector_metadata$class_of_worker,
                                   levels = c(NA, "Total employed, all classes of workers",
                                              "Employees",

@@ -419,24 +419,20 @@ server <- function(input, output, session) {
         filter(comparison == m_or_y) %>%
         mutate(vjust = ifelse(value > 0, 1.5, -1.5))
       
-      data$sex <- factor(data$sex, levels = c("Total", "Males", "Females"))
-      data <- data %>% arrange(desc(sex))
-      
       label <- case_when(str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month (ppt)",
                          str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year (ppt)",
                          !str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month ('000)",
                          !str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year ('000)")
       
       colors <- RColorBrewer::brewer.pal(5, name = "Blues")[2:4]
-      names(colors) <- data %>% pull(sex) %>% unique()
+      names(colors) <- data %>% pull(gender) %>% unique()
       
-      p <- ggplot(data, aes(x = age_group, y = value, fill = sex)) +
+      p <- ggplot(data, aes(x = age_group, y = value, fill = gender)) +
         geom_col(position = position_dodge(width = 0.5), width = 0.5) +
         geom_hline(yintercept = 0) + 
         labs(x = "", y = "", fill = "", 
              title = paste("B.C.", input$hl_ag, "by Age and Gender"), 
              subtitle = label) +
-        guides(fill = guide_legend(reverse = TRUE)) +
         geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1), vjust = vjust),
                   position = position_dodge(width = 0.5),
                   size = 5) +
@@ -469,7 +465,7 @@ server <- function(input, output, session) {
       mutate(ref_date = ymd(ref_date)) %>%
       filter(ref_date %in% c(curr_date)) %>%
       left_join(vectors_filt, by = "vector") %>%
-      mutate(text_color = case_when(value > 4.7 ~ "white",
+      mutate(text_color = case_when(value > 0.9*max(value) ~ "white",
                                     TRUE ~ "black"),
              vjust = case_when(geo == "Kootenay" ~ 1,
                                TRUE ~ 0.3))
@@ -479,14 +475,14 @@ server <- function(input, output, session) {
       mutate(geo_label = str_wrap(str_extract(geo, "^([^,])+"), width = 10))
     
     ggplot() +
-      geom_sf(data = geo_data, aes(fill = value ), colour = "white", lwd = .05) +
-      geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5) +
+      geom_sf(data = geo_data, aes(fill = value ), colour = "dark grey", lwd = 0.5) +
+      geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5, fontface = "bold") +
       labs(x = NULL, y = NULL,
            caption = "Unadjusted\n3 Month Moving Average",
            title = "Unemployment Rate",
            subtitle = "by Region") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
-      scale_color_manual(values = c("white" = "#828282", "black" = "black"))+
+      scale_color_manual(values = c("white" = "white", "black" = "black"))+
       guides(color = FALSE) +
       theme_minimal() +
       theme(
@@ -524,16 +520,20 @@ server <- function(input, output, session) {
     
     geo_data <- cmas %>%
       left_join(data, by = "geo") %>%
-      mutate(vjust = ifelse(geo %in% c("Victoria","Abbotsford-Mission"), 1.7, -1.1),
-             hjust = case_when(geo == "Abbotsford-Mission" ~ -0.1,
+      mutate(vjust = case_when(geo == "Victoria" ~ 1.7,
+                               geo == "Abbotsford-Mission" ~ 1,
+                               geo == "Chilliwack" ~ 2.3,
+                               TRUE ~ -1.1),
+             hjust = case_when(geo == "Abbotsford-Mission" ~ -0.25,
+                               geo == "Chilliwack" ~ 0.3,
                                geo == "Kelowna" ~ 0,
                                geo == "Victoria" ~ 0.9,
                                geo == "Vancouver" ~ 0.05))
     
     ggplot() +
       geom_sf(data = bc, lwd = 0.05) +
-      geom_sf(data = geo_data, aes(fill = value), colour = "white", lwd = .05) +
-      geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5) +
+      geom_sf(data = geo_data, aes(fill = value), colour = "dark grey", lwd = 0.4) +
+      geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5, fontface = "bold") +
       labs(x = NULL, y = NULL,
            caption = "Unadjusted\n3 Month Moving Average",
            title = "Unemployment Rate",
@@ -616,9 +616,9 @@ server <- function(input, output, session) {
       }
       
       ## create "label" column for tables with multi headers
-      if(selected_table() %in% c("age_gender", "age_gender_rate")) {t <- t %>% mutate(label = interaction(age_group, labour_force_characteristics, sex, sep = "_"))}
+      if(selected_table() %in% c("age_gender", "age_gender_rate")) {t <- t %>% mutate(label = interaction(age_group, labour_force_characteristics, gender, sep = "_"))}
       
-      if(selected_table() == "ftpt_gender") {t <- t %>% mutate(label = interaction(labour_force_characteristics, sex, sep = "_"))}
+      if(selected_table() == "ftpt_gender") {t <- t %>% mutate(label = interaction(labour_force_characteristics, gender, sep = "_"))}
       
       if(selected_table() == "occupation") {t <- t %>% mutate(label = interaction(labour_force_characteristics, national_occupational_classification_noc,  sep = "_"))}
       
@@ -667,11 +667,11 @@ server <- function(input, output, session) {
       
       if(selected_table() == "ftpt_gender") {
         data <- data %>%
-          mutate(`(%)_Part-Time as % of Total_Males` = 100*as.numeric(gsub(",","",`Part-time employment_Males_value`))/as.numeric(gsub(",","",`Total_Males_value`)),
-                 `(%)_Part-Time as % of Total_Females` = 100*as.numeric(gsub(",","",`Part-time employment_Females_value`))/as.numeric(gsub(",","",`Total_Females_value`)),
+          mutate(`(%)_Part-Time as % of Total_Men+` = 100*as.numeric(gsub(",","",`Part-time employment_Men+_value`))/as.numeric(gsub(",","",`Total_Men+_value`)),
+                 `(%)_Part-Time as % of Total_Women+` = 100*as.numeric(gsub(",","",`Part-time employment_Women+_value`))/as.numeric(gsub(",","",`Total_Women+_value`)),
                  `(%)_Part-Time as % of Total_Total` = 100*as.numeric(gsub(",","",`Part-time employment_Total_value`))/as.numeric(gsub(",","",`Total_Total_value`))) %>%
           mutate_at(vars(contains("Part-Time as % of Total")),  ~ format(round_half_up(.x, digits = 1), big.mark = ",", nsmall = 1, zero.print = "")) %>%
-          select(ref_date, data_type, contains("_Males"), contains("_Females"), contains("_Total"), date) 
+          select(ref_date, data_type, contains("_Men+"), contains("_Women+"), contains("_Total"), date) 
       }
       
       data <- data %>%
@@ -749,11 +749,11 @@ server <- function(input, output, session) {
       
       if(selected_table() == "ftpt_gender") {
         data <- data %>%
-          mutate(`Part-Time as % of Total_Males` = ifelse(str_detect(Average, "%"), 0, 100*as.numeric(gsub(",","",`Part-time employment_Males`))/as.numeric(gsub(",","",`Total_Males`))),
-                 `Part-Time as % of Total_Females` = ifelse(str_detect(Average, "%"), 0, 100*as.numeric(gsub(",","",`Part-time employment_Females`))/as.numeric(gsub(",","",`Total_Females`))),
+          mutate(`Part-Time as % of Total_Men+` = ifelse(str_detect(Average, "%"), 0, 100*as.numeric(gsub(",","",`Part-time employment_Men+`))/as.numeric(gsub(",","",`Total_Men+`))),
+                 `Part-Time as % of Total_Women+` = ifelse(str_detect(Average, "%"), 0, 100*as.numeric(gsub(",","",`Part-time employment_Women+`))/as.numeric(gsub(",","",`Total_Women+`))),
                  `Part-Time as % of Total_Total` = ifelse(str_detect(Average, "%"), 0, 100*as.numeric(gsub(",","",`Part-time employment_Total`))/as.numeric(gsub(",","",`Total_Total`)))) %>%
           mutate_at(vars(contains("Part-Time as % of Total")),  ~ format(round_half_up(.x, digits = 1), big.mark = ",", nsmall = 1, zero.print = "")) %>%
-          select(data_type, Average, contains("_Males"), contains("_Females"), contains("_Total")) 
+          select(data_type, Average, contains("_Men+"), contains("_Women+"), contains("_Total")) 
       }
       
       data <- data %>%

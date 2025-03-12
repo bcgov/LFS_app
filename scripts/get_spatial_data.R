@@ -44,7 +44,7 @@ economic_regions <-
 cmas <- 
   bcdc_get_data("a6fb34b7-0937-4718-8f1f-43dba2c0f407") %>%
   clean_names() %>%
-  filter(census_metro_area_name %in% c("Kelowna", "Abbotsford - Mission", "Vancouver", "Victoria")) %>%
+  filter(census_metro_area_name %in% c("Kamloops","Kelowna", "Chilliwack", "Abbotsford - Mission", "Vancouver", "Victoria", "Nanaimo")) %>%
   mutate(geo = str_remove_all(census_metro_area_name, " ")) 
 
 bc <- bc_bound() %>%
