@@ -57,9 +57,9 @@ ui <- function(req) {
            style = "margin-top:100px",
            
            ## Tabset start ----  
-           tabsetPanel(id = "tabs",
+           navset_tab(id = "tabs",
                        ### Highlights tab ----
-                tabPanel("Highlights",
+                nav_panel("Highlights",
                          #### Sidebar: About column ----
                          column(width = 3, 
                                 tags$fieldset(style = "width: 90%",
@@ -169,7 +169,7 @@ ui <- function(req) {
                                    
                                   )))),
                 ### Data tables tab ----
-                tabPanel("Data tables",
+                nav_panel("Data tables",
                          #### Sidebar: Selections ----
                          column(width = 3,
                                 tags$fieldset(
@@ -211,7 +211,7 @@ ui <- function(req) {
                          
                          ),
                 ### Definitions tab ----
-                tabPanel("Definitions",
+                nav_panel("Definitions",
                          column(width = 12,
                                 style = "margin-top:25px",
                                 tags$fieldset(
@@ -219,8 +219,7 @@ ui <- function(req) {
                                   includeMarkdown("Definitions.MD")
                                 )
                          )
-                ), 
-                         type = "tabs"
+                )
              ),  ## end of tabsetPanel
 
     ), ## End of column to make changes to
