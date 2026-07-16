@@ -132,16 +132,6 @@ ui <- function(req) {
                                               br(), br()))
                          
                          ),
-                ### Definitions tab ----
-                nav_panel("Definitions",
-                         column(width = 12,
-                                style = "margin-top:25px",
-                                tags$fieldset(
-                                  tags$legend(h2("Labour Force Statistics Information")),
-                                  includeMarkdown("Definitions.MD")
-                                )
-                         )
-                ),
                 ### Trends tab ----
                 nav_panel("Trends",
                           fluidRow(br(),br(),
@@ -222,8 +212,18 @@ ui <- function(req) {
                                             plotOutput("hl_cma_map"))
                                      
                                    ))
+                          ),
+                ### Definitions tab ----
+                nav_panel("Definitions",
+                          column(width = 12,
+                                 style = "margin-top:25px",
+                                 tags$fieldset(
+                                   tags$legend(h2("Labour Force Statistics Information")),
+                                   includeMarkdown("Definitions.MD")
+                                 )
                           )
-             ),  ## end of tabsetPanel
+                )
+             ),  ## end of navset
 
     ), ## End of column to make changes to
     
