@@ -1,0 +1,71 @@
+
+/*** TYPOGRAPHY ***/
+/* =====================
+   Body Text
+   ===================== */
+
+/* Regular Body Text */
+body {
+  font: var(--typography-regular-body);
+}
+
+/* Bold Body Text */
+b, strong {
+  font: var(--typography-bold-body);
+}
+
+/* Italic Body Text */
+i, em {
+  font: var(--typography-italic-body);
+}
+
+/* =====================
+   Headings (Bold by default)
+   ===================== */
+h1 { font: var(--typography-bold-h1); }
+h2 { font: var(--typography-bold-h2); }
+h3 { font: var(--typography-bold-h3); }
+h4 { font: var(--typography-bold-h4); }
+h5 { font: var(--typography-bold-h5); }
+h6 { font: var(--typography-bold-h6); }
+
+/* =====================
+   Italic tags inside headings
+   ===================== */
+h1 i, h1 em { font: var(--typography-italic-h1); }
+h2 i, h2 em { font: var(--typography-italic-h2); }
+h3 i, h3 em { font: var(--typography-italic-h3); }
+h4 i, h4 em { font: var(--typography-italic-h4); }
+h5 i, h5 em { font: var(--typography-italic-h5); }
+h6 i, h6 em { font: var(--typography-italic-h6); }
+
+/* =====================
+   Alternate Classes for Regular Headings
+   ===================== */
+.regular-h1 { font: var(--typography-regular-h1); }
+.regular-h2 { font: var(--typography-regular-h2); }
+.regular-h3 { font: var(--typography-regular-h3); }
+.regular-h4 { font: var(--typography-regular-h4); }
+.regular-h5 { font: var(--typography-regular-h5); }
+.regular-h6 { font: var(--typography-regular-h6); }
+
+/* =====================
+   Primary font color
+   ===================== */
+body, h1, h2, h3, h4, h5, h6 {
+  color: var(--typography-color-primary);
+}
+
+/*** OTHER ELEMENTS ***/
+
+/* Use the design tokens in variables.css to set other defaults */
+
+
+/*** CUSTOM CSS ***/
+
+/* CSS that is specific to your app */
+
+
+
+
+
