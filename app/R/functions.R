@@ -32,8 +32,9 @@
 get_data_for_tbl_vectors <- function(tbl){
   
   tmp = get_cansim_vector(vectors = vectors %>% filter(table == tbl, data_type != "Annual") %>% pull(vector), start_time = monthly_start_month) %>%
-    rbind(get_cansim_vector(vectors = vectors %>% filter(table == tbl, data_type == "Annual") %>% pull(vector), start_time = annual_start_year)) %>%
+    bind_rows(get_cansim_vector(vectors = vectors %>% filter(table == tbl, data_type == "Annual") %>% pull(vector), start_time = annual_start_year)) %>%
     clean_names() %>%
+    select(everything(), -any_of(names(vectors)), vector) %>%
     left_join(vectors %>%  filter(table == tbl), by = c("vector")) 
   
 }
@@ -48,7 +49,7 @@ get_ytd_avg <- function(data, grouping, include_pct_chg = FALSE){
                            TRUE ~ NA_character_)) %>%
     filter(!is.na(ytd)) %>%
     group_by({{grouping}}, data_type, ytd) %>%
-    summarize(avg = mean(value)) %>%
+    summarize(avg = mean(value), .groups = "drop") %>%
     pivot_wider(names_from = ytd, values_from = avg)
   
   if(include_pct_chg) {
@@ -134,8 +135,7 @@ format_header <- function(data) {
   
   if(n_labs == 1) {
     V1 <- headers %>%
-      group_by(V1) %>%
-      summarize(colspan_V1 = n()) %>%
+      summarize(colspan_V1 = n(), .by = V1) %>%
       mutate(html = paste0('<th colspan="',colspan_V1,'">', V1, '</th>'))
     
     tbl_rows <- paste0(
@@ -149,13 +149,11 @@ format_header <- function(data) {
   } else if(n_labs == 2){
     
     V1 <- headers %>%
-      group_by(V2,V1) %>%
-      summarize(colspan_V1 = n()) %>%
+      summarize(colspan_V1 = n(), .by = c(V2, V1)) %>%
       mutate(html = paste0('<th colspan="',colspan_V1,'">', V1, '</th>'))
     
     V2 <- headers %>%
-      group_by(V2) %>%
-      summarize(colspan_V2 = n()) %>%
+      summarize(colspan_V2 = n(), .by = V2) %>%
       mutate(html = paste0('<th colspan="',colspan_V2,'">', V2, '</th>'))
     
     tbl_rows <- paste0(
@@ -172,18 +170,15 @@ format_header <- function(data) {
   } else if(n_labs == 3){
     
     V1 <- headers %>%
-      group_by(V3, V2, V1) %>%
-      summarize(colspan_V1 = n()) %>%
+      summarize(colspan_V1 = n(), .by = c(V3, V2, V1)) %>%
       mutate(html = paste0('<th colspan="',colspan_V1,'">', V1, '</th>'))
     
     V2 <- headers %>%
-      group_by(V3,V2) %>%
-      summarize(colspan_V2 = n()) %>%
+      summarize(colspan_V2 = n(), .by = c(V3,V2)) %>%
       mutate(html = paste0('<th colspan="',colspan_V2,'">', V2, '</th>'))
     
     V3 <- headers %>%
-      group_by(V3) %>%
-      summarize(colspan_V3 = n()) %>%
+      summarize(colspan_V3 = n(), .by = V3) %>%
       mutate(html = paste0('<th colspan="',colspan_V3,'">', V3, '</th>'))
     
     tbl_rows <- paste0(
@@ -202,23 +197,19 @@ format_header <- function(data) {
   } else { ## (n_labs == 4)
     
     V1 <- headers %>%
-      group_by(V4, V3, V2, V1) %>%
-      summarize(colspan_V1 = n()) %>%
+      summarize(colspan_V1 = n(), .by = c(V4, V3, V2, V1)) %>%
       mutate(html = paste0('<th colspan="',colspan_V1,'">', V1, '</th>'))
     
     V2 <- headers %>%
-      group_by(V4, V3, V2) %>%
-      summarize(colspan_V2 = n()) %>%
+      summarize(colspan_V2 = n(), .by = c(V4, V3, V2)) %>%
       mutate(html = paste0('<th colspan="',colspan_V2,'">', V2, '</th>'))
     
     V3 <- headers %>%
-      group_by(V4, V3) %>%
-      summarize(colspan_V3 = n()) %>%
+      summarize(colspan_V3 = n(), .by = c(V4, V3)) %>%
       mutate(html = paste0('<th colspan="',colspan_V3,'">', V3, '</th>'))
     
     V4 <- headers %>%
-      group_by(V4) %>%
-      summarize(colspan_V4 = n()) %>%
+      summarize(colspan_V4 = n(), .by = V4) %>%
       mutate(html = paste0('<th colspan="',colspan_V4,'">', V4, '</th>'))
     
     tbl_rows <- paste0(
@@ -263,6 +254,7 @@ get_summary_table <- function() {
                                  filter(table == "summary") %>%
                                  pull(vector), start_time = prev_year) %>%
     clean_names() %>%
+    select(everything(), -any_of(names(vectors)), vector) %>%
     left_join(vectors %>%  filter(table == "summary"), by = c("vector")) %>%
     filter(date %in% c(curr_date, prev_month, prev_year)) %>%
     mutate(month = case_when(date == curr_date ~ "curr_month",

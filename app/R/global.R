@@ -36,7 +36,7 @@ library(bcmaps) ## for maps
 library(rmapshaper) ## for maps
 library(viridis) ## for maps
 
-options(scipen = 999999999)  ## so chart axes read properly
+options(scipen = 9999)  ## so chart axes read properly
 
 ### vectors and metadata ----
 vectors <- qs::qread("vector_metadata.qs")
@@ -59,7 +59,6 @@ hl_stats_meta <- data.frame(
 hl_data <- get_cansim_vector_for_latest_periods(
   vectors = hl_stats_meta$vector,
   periods = 2) %>%
-  normalize_cansim_values() %>%
   clean_names() 
 
 hl_stats <- hl_data %>%
