@@ -20,6 +20,7 @@ library(rsconnect)      ## deployment interface for shiny apps
 library(shiny)          ## for most app functions: reactive(), downloadHandler(), renderUI(), shinyApp(), etc.
 library(shinydashboard) ## for box()
 library(shinyWidgets)   ## for useShinydashboard()
+library(bslib)
 library(cansim)         ## for cansim data
 library(lubridate)    ## for ymd() (date parsing)
 library(janitor)      ## for clean_names() (on cansim data) and round_half_up()
@@ -29,7 +30,7 @@ library(scales)       ## for label_percent() in plots
 library(DiagrammeR)   ## for flow chart
 library(dygraphs)
 library(xts)
-library(bcstatslinks) ## for bc stats app link drop down
+library(bcsapps) ## for bc stats header/footer
 library(bcdata) ## for maps
 library(sf) ## for maps
 library(bcmaps) ## for maps
