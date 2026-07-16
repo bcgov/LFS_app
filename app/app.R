@@ -133,86 +133,61 @@ ui <- function(req) {
                          
                          ),
                 ### Trends tab ----
-                nav_panel("Trends",
-                          fluidRow(br(),br(),
-                                   shinydashboard::box(
-                                     id = "trendsbox",
-                                     title = "TRENDS",
-                                     status = "primary",
-                                     solidHeader = TRUE,
-                                     width = NULL,
-                                     collapsible = TRUE,
-                                     collapsed = TRUE,
-                                     tabBox(id = "hl_ts",
-                                            width = NULL,
-                                            selected = "Employment",
-                                            side = "left",
-                                            tabPanel("Employment",
-                                                     dygraphOutput("hl_emp_cht")),
-                                            tabPanel("Unemployment Rate",
-                                                     dygraphOutput("hl_unemp_cht")),
-                                            tabPanel("Participation Rate",
-                                                     dygraphOutput("hl_part_cht"))),
-                                     tags$fieldset(tags$em("Shaded areas indicate Canadian recessions")),
-                                     br(), br()),
-                                   shinydashboard::box(
-                                     id = "agebox",
-                                     title = "AGE AND GENDER",
-                                     status = "primary",
-                                     solidHeader = TRUE,
-                                     width = NULL,
-                                     collapsible = TRUE,
-                                     collapsed = TRUE,
-                                     tabBox(id = "hl_ag",
-                                            width = NULL,
-                                            selected = "Employment",
-                                            side = "left",
-                                            tabPanel("Employment",
-                                                     radioButtons("emp_m_or_y", 
-                                                                  label = NULL,
-                                                                  choices = c("Change from previous month" = "mom",
-                                                                              "Change from same month, previous year" = "yoy"),
-                                                                  selected = "mom", 
-                                                                  inline = TRUE),
-                                                     br(),
-                                                     plotOutput("hl_emp_ag_m_or_y")
-                                            ),
-                                            tabPanel("Unemployment Rate",
-                                                     radioButtons("unemp_m_or_y", 
-                                                                  label = NULL,
-                                                                  choices = c("Change from previous month" = "mom",
-                                                                              "Change from same month, previous year" = "yoy"),
-                                                                  selected = "mom", 
-                                                                  inline = TRUE),
-                                                     br(),
-                                                     plotOutput("hl_unemp_ag_m_or_y")
-                                            ),
-                                            tabPanel("Participation Rate",
-                                                     radioButtons("part_m_or_y", 
-                                                                  label = NULL,
-                                                                  choices = c("Change from previous month" = "mom",
-                                                                              "Change from same month, previous year" = "yoy"),
-                                                                  selected = "mom", 
-                                                                  inline = TRUE),
-                                                     br(),
-                                                     plotOutput("hl_part_ag_m_or_y")
-                                            ))
-                                   ),
-                                   shinydashboard::box(
-                                     id = "regionbox",
-                                     title = "REGIONS",
-                                     status = "primary",
-                                     solidHeader = TRUE,
-                                     width = NULL,
-                                     collapsible = TRUE,
-                                     collapsed = TRUE,
-                                     column(width = 6,
-                                            plotOutput("hl_reg_map")),
-                                     column(width = 6,
-                                            plotOutput("hl_cma_map"))
-                                     
-                                   ))
-                          ),
+                nav_panel(
+                  "Trends",
+                  br(),br(),
+                  navset_card_tab(
+                    title = "Overall trends",
+                    id = "hl_ts",
+                    nav_panel("Employment", br(), dygraphOutput("hl_emp_cht")),
+                    nav_panel("Unemployment rate", br(), dygraphOutput("hl_unemp_cht")),
+                    nav_panel("Participation rate", br(), dygraphOutput("hl_part_cht")),
+                    footer = em("Shaded areas indicate Canadian recessions")
+                    ),
+                  br(),br(),
+                  navset_card_tab(
+                    title = "Age and gender",
+                    id = "hl_ag",
+                    nav_panel(
+                      "Employment",
+                      br(),
+                      radioButtons("emp_m_or_y",
+                                   label = NULL,
+                                   choices = c("Change from previous month" = "mom",
+                                               "Change from same month, previous year" = "yoy"),
+                                   selected = "mom",
+                                   inline = TRUE),
+                      br(),
+                      plotOutput("hl_emp_ag_m_or_y")),
+                    nav_panel(
+                      "Unemployment rate", 
+                      radioButtons("unemp_m_or_y",
+                                   label = NULL,
+                                   choices = c("Change from previous month" = "mom",
+                                               "Change from same month, previous year" = "yoy"),
+                                   selected = "mom",
+                                   inline = TRUE),
+                      br(),
+                      plotOutput("hl_unemp_ag_m_or_y")),
+                    nav_panel("Participation rate", 
+                              radioButtons("part_m_or_y",
+                                           label = NULL,
+                                           choices = c("Change from previous month" = "mom",
+                                                       "Change from same month, previous year" = "yoy"),
+                                           selected = "mom",
+                                           inline = TRUE),
+                              br(),
+                              plotOutput("hl_part_ag_m_or_y"))
+                  ),
+                  br(),br(),
+                  card(
+                    card_header("Regions"),
+                    layout_columns(
+                      col_widths = c(6, 6),
+                      plotOutput("hl_reg_map"),
+                      plotOutput("hl_cma_map")
+                    )
+                  ),
                 ### Definitions tab ----
                 nav_panel("Definitions",
                           column(width = 12,
@@ -347,8 +322,8 @@ server <- function(input, output, session) {
   tseries <- reactive({
     
     vector <- case_when(
-      input$hl_ts == "Unemployment Rate" ~ "v2064705",
-      input$hl_ts == "Participation Rate" ~ "v2064706",
+      input$hl_ts == "Unemployment rate" ~ "v2064705",
+      input$hl_ts == "Participation rate" ~ "v2064706",
       input$hl_ts == "Employment" ~ "v2064701")
 
     data <- get_cansim_vector(vectors = vector,
@@ -409,8 +384,8 @@ server <- function(input, output, session) {
     output$hl_part_ag_m_or_y <- renderPlot({
       
       m_or_y <- case_when(input$hl_ag == "Employment" ~ input$emp_m_or_y,
-                          input$hl_ag == "Unemployment Rate" ~ input$unemp_m_or_y, 
-                          input$hl_ag == "Participation Rate" ~ input$part_m_or_y)
+                          input$hl_ag == "Unemployment rate" ~ input$unemp_m_or_y, 
+                          input$hl_ag == "Participation rate" ~ input$part_m_or_y)
       
       data <- ag_reactive() %>%
         select(-ref_date) %>%
