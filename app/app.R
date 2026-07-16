@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+google_tracking <- FALSE
 
 ## LFS app ----
 
@@ -23,6 +23,14 @@ ui <- function(req) {
             title = "LFS App",
             theme = "bootstrap.css",
             HTML("<html lang='en'>"),
+            
+            htmltools::tags$head(
+              htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "BC_Sans.css"),  ## set up BC Sans fonts
+              htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "variables.css"),## bcgov design tokens
+              htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),   ## custom styles
+              htmltools::tags$link(rel = "shortcut icon", href = "favicon.png"),  ## add BCGov favicon
+              if(google_tracking){  htmltools::includeHTML("www/google-analytics.html") },  ## to add GA tracking code (see global.R for more details)
+            ),
             
             ## Custom formatting ----
             ## formatting for icons in valueBoxes
