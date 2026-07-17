@@ -136,6 +136,8 @@ ui <- function(req) {
                 nav_panel(
                   "Trends",
                   br(),
+                  h2(formatted_date),
+                  br(),
                   navset_card_tab(
                     title = "Overall trends",
                     id = "hl_ts",
