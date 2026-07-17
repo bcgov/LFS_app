@@ -91,47 +91,53 @@ ui <- function(req) {
                                        grVizOutput("flow", height = 300)))
                                 )),
                 ### Data tables tab ----
-                nav_panel("Data tables",
-                         #### Sidebar: Selections ----
-                         column(width = 3,
-                                tags$fieldset(
-                                  br(),
-                                  tags$legend(h2(formatted_date)),
-                                  selectInput("select_data_table",
-                                              label = "Select table:",
-                                              ## Add a default value to be initially selected
-                                              ## This will be updated once Data tables tab is selected
-                                              ## Triggering reactive event 
-                                              ## i.e., won't load cansim data until tab selected
-                                              choices = c("Select table" = "default", choices_list),
-                                              selected = "default",
-                                              width = "90%"),
-                                  radioButtons("select_data_type",
-                                               label = "Select data type:",
-                                               choices = c("Seasonally adjusted",
-                                                           "Unadjusted",
-                                                           "Annual")),
-                                  downloadButton(outputId = "download_button", label = "Download table (.csv)"),
-                                  br(),br(),
-                                  tags$div("Note: downloaded data will contain all data types for the selected table",
-                                           style = "width: 90%")
-                                  )),
-                         #### Content ----
-                         column(width = 9,
-                                uiOutput("table_name"),
-                                DT::dataTableOutput("data_table"),
-                                uiOutput("avg_table_name"),
-                                DT::dataTableOutput("avg_table"),
-                                br(),br(),
-                                tags$fieldset(tags$b("Prepared by: BC Stats"),
-                                              br(), 
-                                              tags$b("Source:"),
-                                              'Statistics Canada, Labour Force Survey. 
-                                       Reproduced and distributed on an "as is" 
-                                       basis with the permission of Statistics Canada.',
-                                              br(), br()))
-                         
-                         ),
+                nav_panel(
+                  "Data tables",
+                  layout_columns(
+                    col_widths = c(3, 9),
+                    #### Sidebar: Selections ----
+                    div(
+                      h2(formatted_date, class = "mt-4 mb-3"),
+                      selectInput(
+                        "select_data_table",
+                        label = "Select table:",
+                        ## Add a default value to be initially selected
+                        ## This will be updated once Data tables tab is selected
+                        ## Triggering reactive event 
+                        ## i.e., won't load cansim data until tab selected
+                        choices = c("Select table" = "default", choices_list),
+                        selected = "default",
+                        width = "90%"),
+                      radioButtons(
+                        "select_data_type",
+                        label = "Select data type:",
+                        choices = c("Seasonally adjusted",
+                                    "Unadjusted",
+                                    "Annual")),
+                      downloadButton(outputId = "download_button", label = "Download table (.csv)"),
+                      div(
+                        class = "mt-4",
+                        style = "width: 90%",
+                        p(strong("Note:"), "downloaded data will contain all data types for the selected table")
+                        )
+                      ),
+                    #### Content ----
+                    div(
+                      uiOutput("table_name"),
+                      DT::dataTableOutput("data_table"),
+                      uiOutput("avg_table_name"),
+                      DT::dataTableOutput("avg_table"),
+                      div(
+                        class = "mt-5 mb-5",
+                        p(strong("Prepared by:"), "BC Stats"),
+                        p(strong("Source:"),
+                          'Statistics Canada, Labour Force Survey.
+                          Reproduced and distributed on an "as is"
+                          basis with the permission of Statistics Canada.')
+                        )
+                      )
+                    )
+                  ),
                 ### Trends tab ----
                 nav_panel(
                   "Trends",
@@ -547,13 +553,16 @@ server <- function(input, output, session) {
     }
     
     else if(selected_table() %in% c("region", "cma") & input$select_data_type == "Unadjusted") {
-      tags$legend(h2(names(choices_list[choices_list == selected_table()])),
-                  h3(input$select_data_type, "- 3 Month Moving Average"))
+      tagList(
+        h2(names(choices_list[choices_list == selected_table()]), class = "mt-4"),
+        h3(input$select_data_type, "- 3 Month Moving Average", class = "mb-3")
+      )
       
-    }else {
-    
-    tags$legend(h2(names(choices_list[choices_list == selected_table()])),
-                h3(input$select_data_type))
+    } else {
+      tagList(
+        h2(names(choices_list[choices_list == selected_table()]), class = "mt-4"),
+        h3(input$select_data_type, class = "mb-3")
+      )
     }
   })
   
@@ -687,7 +696,7 @@ server <- function(input, output, session) {
       
     } else {
       
-      tags$legend(br(),h3(HTML("Year-to-date Averages &#8212; "),input$select_data_type))
+      h3(HTML("Year-to-date Averages &#8212; "), input$select_data_type, class = "mt-4 mb-3")
     }
     
   })

@@ -119,23 +119,23 @@ names(choices_list) <- dt_details$table_name
 
 table_captions <- tibble::tribble(
                             ~table_id, ~caption,
-                            "summary", "NOTE: The employment rate is the number of employed persons expressed as a percentage of the population 15 years of age and over.",
-                             "bc_lfd", "NOTE: Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",
+                            "summary", "<strong>Note:</strong> The employment rate is the number of employed persons expressed as a percentage of the population 15 years of age and over.",
+                             "bc_lfd", "<strong>Note:</strong> Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",
                            "prov_emp", "",
-                    "prov_emp_growth", "NOTE: Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",
-                      "prov_emp_jobs", "NOTE: Changes for unadjusted data are calculated as month less same month previous year. For seasonally adjusted data, changes are calculated as month less previous month.",
+                    "prov_emp_growth", "<strong>Note:</strong> Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",
+                      "prov_emp_jobs", "<strong>Note:</strong> Changes for unadjusted data are calculated as month less same month previous year. For seasonally adjusted data, changes are calculated as month less previous month.",
                         "prov_unempr", "",
                           "prov_empr", "",
-                         "age_gender", "NOTE: due to relatively small sample sizes from which disaggregated data are derived, caution should be used in the interpretation of month-to-month changes in the estimates",
-                    "age_gender_rate", "NOTE: due to relatively small sample sizes from which disaggregated data are derived, caution should be used in the interpretation of month-to-month changes in the estimates",
+                         "age_gender", "<strong>Note:</strong> due to relatively small sample sizes from which disaggregated data are derived, caution should be used in the interpretation of month-to-month changes in the estimates",
+                    "age_gender_rate", "<strong>Note:</strong> due to relatively small sample sizes from which disaggregated data are derived, caution should be used in the interpretation of month-to-month changes in the estimates",
                         "ftpt_gender", "",
-                           "industry", "NOTE: Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",
-                         "occupation", "NOTES:<br/>
+                           "industry", "<strong>Note:</strong> Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month.",
+                         "occupation", "<strong>Notes:</strong><br/>
                                        1. Occupation specific Unemployment Rates include only those unemployed who worked in the past year. The \"All Occupations\" rate incorporates total unemployed persons which includes an \"Occupation Unclassified\" category.<br/>
                                        2. Due to the relatively small sample sizes from which disaggregated data are derived, caution should be used in the interpretation of month-to-month changes in the estimates.<br/>
                                        3. For the unemployed, industry or occupation is based on the last job held in the previous year. No information is collected on industry or occupation of job search.",
-                             "region", "NOTE: Revised in January 2021 to reflect 2016 Census population and 2016 Standard Geographic Classification.",
-                                "cma", "NOTE: Revised in January 2021 to reflect 2016 Census population and 2016 Standard Geographic Classification.",
+                             "region", "<strong>Note:</strong> Revised in January 2021 to reflect 2016 Census population and 2016 Standard Geographic Classification.",
+                                "cma", "<strong>Note:</strong> Revised in January 2021 to reflect 2016 Census population and 2016 Standard Geographic Classification.",
                                 "cow", ""
                     )
 
