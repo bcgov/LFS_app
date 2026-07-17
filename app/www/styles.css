@@ -65,6 +65,15 @@ body, h1, h2, h3, h4, h5, h6 {
 
 /* CSS that is specific to your app */
 
+/* =====================
+   Cards
+   ===================== */
+
+.lfs-card-header,
+.lfs-card-header * {
+  background-color: var(--surface-color-background-dark-blue);
+  color: var(--typography-color-primary-invert) !important;
+}
 
 
 
