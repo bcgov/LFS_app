@@ -19,40 +19,41 @@ google_tracking <- FALSE
 ## Start of app ----
 # UI demonstrating column layouts
 ui <- function(req) {
-  fluidPage(title = "LFS App",
-            theme = "bootstrap.css",
-            HTML("<html lang='en'>"),
-            
-            htmltools::tags$head(
-              htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "BC_Sans.css"),  ## set up BC Sans fonts
-              htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "variables.css"),## bcgov design tokens
-              htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),   ## custom styles
-              htmltools::tags$link(rel = "shortcut icon", href = "favicon.png"),  ## add BCGov favicon
-              if(google_tracking){  htmltools::includeHTML("www/google-analytics.html") },  ## to add GA tracking code (see global.R for more details)
-            ),
-            
-            ## Custom formatting ----
-            ## formatting for icons in valueBoxes
-            tags$head(tags$style(HTML('.small-box .icon-large {top: -10px;}'))),
-            
-            ## formatting for tabBox content
-            tags$head(tags$style(HTML('.nav-tabs-custom>.tab-content {border: 1px solid #3c8dbc}'))),
-            tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active
+  htmltools::tags$html(
+    lang = "en",
+    
+    htmltools::tagList(
+      
+      ## styles, etc.
+      htmltools::tags$head(
+        htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "BC_Sans.css"),  ## set up BC Sans fonts
+        htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "variables.css"),## bcgov design tokens
+        htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),   ## custom styles
+        htmltools::tags$link(rel = "shortcut icon", href = "favicon.png"),  ## add BCGov favicon
+        if(google_tracking){  htmltools::includeHTML("www/google-analytics.html") },  ## to add GA tracking code (see global.R for more details)
+      ),
+      
+      ## Custom formatting ----
+      ## formatting for icons in valueBoxes
+      tags$head(tags$style(HTML('.small-box .icon-large {top: -10px;}'))),
+      
+      ## formatting for tabBox content
+      tags$head(tags$style(HTML('.nav-tabs-custom>.tab-content {border: 1px solid #3c8dbc}'))),
+      tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active
                                       {border-top-color: #3c8dbc; border-left: 1px solid #3c8dbc;'))),
-            tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active>a {border-right: 1px solid #3c8dbc}'))),
-            
-            
-            fluidRow(
-              ## Header column ----
-              bcsHeaderUI(
-                id = "header",
-                appname = "Labour Market Statistics for British Columbia",
-                mobilename = "Labour Market",
-                github = "https://github.com/bcgov/LFS_app"
-              ),
+      tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active>a {border-right: 1px solid #3c8dbc}'))),
+      
+      ## Header column ----
+      bcsHeaderUI(
+        id = "header",
+        appname = "Labour Market Statistics for British Columbia",
+        mobilename = "Labour Market",
+        github = "https://github.com/bcgov/LFS_app"
+      ),
+              
     ## Main body column ----
     ## Make changes to this column
-    column(width = 12,
+    page_fluid(
            
            ## Tabset start ----  
            navset_tab(id = "tabs",
@@ -202,24 +203,9 @@ ui <- function(req) {
     ), ## End of column to make changes to
     
     ## footer column ----
-    column(width = 12,
-           style = "background-color:#003366; border-top:2px solid #fcba19;",
-
-            tags$footer(class="footer",
-              tags$div(class="container", style="display:flex; justify-content:center; flex-direction:column; text-align:center; height:46px;",
-                tags$ul(style="display:flex; flex-direction:row; flex-wrap:wrap; margin:0; list-style:none; align-items:center; height:100%;",
-                  tags$li(a(href="https://www2.gov.bc.ca/gov/content/home", "Home", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
-                    tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/disclaimer", "Disclaimer", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
-                  tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/privacy", "Privacy", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
-                  tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/accessibility", "Accessibility", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
-                  tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/copyright", "Copyright", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
-                  tags$li(a(href="https://www2.gov.bc.ca/StaticWebResources/static/gov3/html/contact-us.html", "Contact", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;"))
-                )
-              )
-             )
-    )
-  )
-)}
+    bcsFooterUI("footer")
+  
+))}
 
 
 ## define server logic ----
