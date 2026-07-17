@@ -57,7 +57,7 @@ ui <- function(req) {
            
            ## Tabset start ----  
            navset_tab(id = "tabs",
-                       ### Highlights tab ----
+                ### Highlights tab ----
                 nav_panel("Highlights",
                          #### Sidebar: About column ----
                          column(width = 3, 
@@ -135,51 +135,51 @@ ui <- function(req) {
                 ### Trends tab ----
                 nav_panel(
                   "Trends",
-                  br(),br(),
+                  br(),
                   navset_card_tab(
                     title = "Overall trends",
                     id = "hl_ts",
-                    nav_panel("Employment", br(), dygraphOutput("hl_emp_cht")),
-                    nav_panel("Unemployment rate", br(), dygraphOutput("hl_unemp_cht")),
-                    nav_panel("Participation rate", br(), dygraphOutput("hl_part_cht")),
+                    nav_panel("Employment",dygraphOutput("hl_emp_cht")),
+                    nav_panel("Unemployment rate", dygraphOutput("hl_unemp_cht")),
+                    nav_panel("Participation rate", dygraphOutput("hl_part_cht")),
                     footer = em("Shaded areas indicate Canadian recessions")
-                    ),
-                  br(),br(),
+                  ),
+                  br(),
                   navset_card_tab(
                     title = "Age and gender",
                     id = "hl_ag",
                     nav_panel(
                       "Employment",
-                      br(),
-                      radioButtons("emp_m_or_y",
-                                   label = NULL,
-                                   choices = c("Change from previous month" = "mom",
-                                               "Change from same month, previous year" = "yoy"),
-                                   selected = "mom",
-                                   inline = TRUE),
-                      br(),
+                      radioButtons(
+                        "emp_m_or_y",
+                        label = NULL,
+                        choices = c("Change from previous month" = "mom",
+                                    "Change from same month, previous year" = "yoy"),
+                        selected = "mom",
+                        inline = TRUE),
                       plotOutput("hl_emp_ag_m_or_y")),
                     nav_panel(
                       "Unemployment rate", 
-                      radioButtons("unemp_m_or_y",
-                                   label = NULL,
-                                   choices = c("Change from previous month" = "mom",
-                                               "Change from same month, previous year" = "yoy"),
-                                   selected = "mom",
-                                   inline = TRUE),
-                      br(),
+                      radioButtons(
+                        "unemp_m_or_y",
+                        label = NULL,
+                        choices = c("Change from previous month" = "mom",
+                                    "Change from same month, previous year" = "yoy"),
+                        selected = "mom",
+                        inline = TRUE),
                       plotOutput("hl_unemp_ag_m_or_y")),
-                    nav_panel("Participation rate", 
-                              radioButtons("part_m_or_y",
-                                           label = NULL,
-                                           choices = c("Change from previous month" = "mom",
-                                                       "Change from same month, previous year" = "yoy"),
-                                           selected = "mom",
-                                           inline = TRUE),
-                              br(),
-                              plotOutput("hl_part_ag_m_or_y"))
+                    nav_panel(
+                      "Participation rate", 
+                      radioButtons(
+                        "part_m_or_y",
+                        label = NULL,
+                        choices = c("Change from previous month" = "mom",
+                                    "Change from same month, previous year" = "yoy"),
+                        selected = "mom",
+                        inline = TRUE),
+                      plotOutput("hl_part_ag_m_or_y"))
                   ),
-                  br(),br(),
+                  br(),
                   card(
                     card_header("Regions"),
                     layout_columns(
