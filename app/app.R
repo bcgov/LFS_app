@@ -189,14 +189,10 @@ ui <- function(req) {
                     )
                   )),
                 ### Definitions tab ----
-                nav_panel("Definitions",
-                          column(width = 12,
-                                 style = "margin-top:25px",
-                                 tags$fieldset(
-                                   tags$legend(h2("Labour Force Statistics Information")),
-                                   includeMarkdown("Definitions.MD")
-                                 )
-                          )
+                nav_panel(
+                  "Definitions",
+                  h2("Labour Force Statistics Information", class = "mt-4 mb-3"),
+                  includeMarkdown("Definitions.MD")
                 )
              ),  ## end of navset
 
