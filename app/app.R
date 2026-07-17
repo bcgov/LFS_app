@@ -71,9 +71,6 @@ ui <- function(req) {
                                   br(), br(),
                                   "Navigate the tabs to find statistics that reflect the 
                                   labour market characteristics of the population of B.C.",
-                                  br(),br(),
-                                  "To zoom in on dates for the Employment, Unemployment Rate, and Participation Rate
-                                  charts under the TRENDS box, move the slider or select part of the chart with your mouse.",
                                   br(), br(),
                                   "Learn more ", 
                                   tags$a("about the Labour Force Survey", 
@@ -148,7 +145,9 @@ ui <- function(req) {
                     nav_panel("Employment",dygraphOutput("hl_emp_cht")),
                     nav_panel("Unemployment rate", dygraphOutput("hl_unemp_cht")),
                     nav_panel("Participation rate", dygraphOutput("hl_part_cht")),
-                    footer = em("Shaded areas indicate Canadian recessions")
+                    footer = div(
+                      em("Shaded areas indicate Canadian recessions"),
+                      p("To zoom in on dates, move the bottom slider or click and drag your mouse on part of the chart. Double click on the chart to reset."))
                   ),
                   navset_card_tab(
                     title = "Age and gender",
