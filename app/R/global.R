@@ -58,15 +58,22 @@ hl_stats_meta <- data.frame(
 
 hl_data <- get_cansim_vector_for_latest_periods(
   vectors = hl_stats_meta$vector,
-  periods = 2) %>%
+  periods = 13) %>%
   clean_names() 
 
 hl_stats <- hl_data %>%
   left_join(hl_stats_meta, by = "vector") %>%
-  mutate(month = ifelse(ref_date == max(ref_date), "current", "previous")) %>%
-  select(label, month, value) %>%
-  pivot_wider(names_from = month, values_from = value) %>%
-  mutate(change = round_half_up(current - previous, digits = 1))
+  mutate(ref_date = ymd(ref_date),
+         date = case_when(ref_date == max(ref_date) ~ "current",
+                          ref_date == max(ref_date) - months(1) ~ "previous_month",
+                          ref_date == max(ref_date) - years(1) ~ "previous_year")) %>%
+  select(label, date, value) %>%
+  filter(!is.na(date)) %>%
+  pivot_wider(names_from = date, values_from = value) %>%
+  mutate(mom_change = round_half_up(current - previous_month, digits = 1),
+         mom_pct_change = round_half_up(100 * (current - previous_month)/ previous_month, digits = 1),
+         yoy_change = round_half_up(current - previous_year, digits = 1),
+         yoy_pct_change = round_half_up(100 * (current - previous_year)/ previous_year, digits = 1))
 
 ### Date References ----
 

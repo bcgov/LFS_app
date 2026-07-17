@@ -76,7 +76,7 @@ ui <- function(req) {
                   ),
                   h3("Highlights"),
                   layout_column_wrap(
-                    width = 1/3,
+                    width = "350px",
                     uiOutput("emp"),
                     uiOutput("unemprate"),
                     uiOutput("partrate")
@@ -213,74 +213,148 @@ server <- function(input, output, session) {
   ## Tab 0: Highlights ----
   
   ### Valueboxes ----
-  output$unemprate <- renderUI({
+  # output$unemprate <- renderUI({
+  #   
+  #   data <- hl_stats %>%
+  #     filter(label == "Unemployment Rate")
+  #   
+  #   sign <- case_when(data$mom_change > 0 ~ paste("Up", abs(data$mom_change), "percentage points from last month", sep = " "),
+  #                     data$mom_change == 0 ~ "No change from last month",
+  #                     data$mom_change < 0 ~ paste("Down", abs(data$mom_change), "percentage points from last month", sep = " "))
+  #   
+  #   icon <- case_when(data$mom_change > 0 ~ "arrow-alt-circle-up",
+  #                     data$mom_change == 0 ~ "arrow-alt-circle-right",
+  #                     data$mom_change < 0 ~ "arrow-alt-circle-down")
+  #   
+  #   value_box(
+  #     title = data$label,
+  #     value = paste0(data$current, "%"),
+  #     showcase = icon(icon),
+  #     sign,
+  #     theme = value_box_theme(
+  #       bg = "#3c8dbc"  # similar to shinydashboard light-blue
+  #     )
+  #   )
+  # })
+  
+  # output$partrate <- renderUI({
+  #   
+  #   data <- hl_stats %>%
+  #     filter(label == "Participation Rate")
+  #   
+  #   sign <- case_when(data$mom_change > 0 ~ paste("Up", abs(data$mom_change), "percentage points from last month", sep = " "),
+  #                     data$mom_change == 0 ~ "No change from last month",
+  #                     data$mom_change < 0 ~ paste("Down", abs(data$mom_change), "percentage points from last month", sep = " "))
+  #   
+  #   icon <- case_when(data$mom_change > 0 ~ "arrow-alt-circle-up",
+  #                     data$mom_change == 0 ~ "arrow-alt-circle-right",
+  #                     data$mom_change < 0 ~ "arrow-alt-circle-down")
+  #   
+  #   value_box(
+  #     title = data$label,
+  #     value = paste0(data$current, "%"),
+  #     showcase = icon(icon),
+  #     sign,
+  #     theme = value_box_theme(
+  #       bg = "#3c8dbc"  # similar to shinydashboard light-blue
+  #     )
+  #   )
+  # })
+  
+  value_box_info <- function(indicator) {
     
     data <- hl_stats %>%
-      filter(label == "Unemployment Rate")
+      filter(label == indicator)
     
-    sign <- case_when(data$change > 0 ~ paste("Up", abs(data$change), "percentage points from last month", sep = " "),
-                      data$change == 0 ~ "No change from last month",
-                      data$change < 0 ~ paste("Down", abs(data$change), "percentage points from last month", sep = " "))
+    data$icon <- case_when(
+      data$mom_change > 0 ~ "arrow-up",
+      data$mom_change == 0 ~ "minus",
+      data$mom_change < 0 ~ "arrow-down")
     
-    icon <- case_when(data$change > 0 ~ "arrow-alt-circle-up",
-                      data$change == 0 ~ "arrow-alt-circle-right",
-                      data$change < 0 ~ "arrow-alt-circle-down")
+    data$color <- case_when(
+      data$mom_change > 0 ~ " --icons-color-success",
+      data$mom_change == 0 ~ "--icons-color-primary",
+      data$mom_change < 0 ~ "--icons-color-danger")
     
-    value_box(
-      title = data$label,
-      value = paste0(data$current, "%"),
-      showcase = icon(icon),
-      sign,
-      theme = value_box_theme(
-        bg = "#3c8dbc"  # similar to shinydashboard light-blue
+    data$yoy_icon <- case_when(
+      data$yoy_change > 0 ~ "arrow-up",
+      data$yoy_change == 0 ~ "minus",
+      data$yoy_change < 0 ~ "arrow-down")
+    
+    data$yoy_color <- case_when(
+      data$yoy_change > 0 ~ " --icons-color-success",
+      data$yoy_change == 0 ~ "--icons-color-primary",
+      data$yoy_change < 0 ~ "--icons-color-danger")
+    
+    data
+  }
+  
+  output$emp <- renderUI({
+    
+    data <- value_box_info("Employment")
+    
+    card(
+      card_header(h3(data$label), class = "lfs-card-header"),
+      card_body(
+        gap = 0,
+        h4(paste(prettyNum(data$current, big.mark = ","), "thousand")),
+        span(icon(data$icon, style = paste0("color: var(", data$color, ")")), 
+             data$mom_change, 
+             "thousand | ",
+             paste0(data$mom_pct_change, "%"),
+             "from last month"
+        ),
+        span(icon(data$yoy_icon, style = paste0("color: var(", data$yoy_color, ")")), 
+             data$yoy_change, 
+             "thousand | ",
+             paste0(data$yoy_pct_change, "%"),
+             "from last year"
+        )
+      )
+      
+    )
+  })
+  
+  output$unemprate <- renderUI({
+    data <- value_box_info("Unemployment Rate")
+    
+    card(
+      card_header(h3(data$label), class = "lfs-card-header"),
+      card_body(
+        gap = 0,
+        h4(paste0(data$current, "%")),
+        span(icon(data$icon, style = paste0("color: var(", data$color, ")")), 
+             data$mom_change, 
+             "p.p.",
+             "from last month"
+        ),
+        span(icon(data$yoy_icon, style = paste0("color: var(", data$yoy_color, ")")), 
+             data$yoy_change, 
+             "p.p.",
+             "from last year"
+        )
       )
     )
   })
   
   output$partrate <- renderUI({
+    data <- value_box_info("Participation Rate")
     
-    data <- hl_stats %>%
-      filter(label == "Participation Rate")
-    
-    sign <- case_when(data$change > 0 ~ paste("Up", abs(data$change), "percentage points from last month", sep = " "),
-                      data$change == 0 ~ "No change from last month",
-                      data$change < 0 ~ paste("Down", abs(data$change), "percentage points from last month", sep = " "))
-    
-    icon <- case_when(data$change > 0 ~ "arrow-alt-circle-up",
-                      data$change == 0 ~ "arrow-alt-circle-right",
-                      data$change < 0 ~ "arrow-alt-circle-down")
-    
-    value_box(
-      title = data$label,
-      value = paste0(data$current, "%"),
-      showcase = icon(icon),
-      sign,
-      theme = value_box_theme(
-        bg = "#3c8dbc"  # similar to shinydashboard light-blue
-      )
-    )
-  })
-  
-  output$emp <- renderUI({
-    
-    data <- hl_stats %>%
-      filter(label == "Employment")
-    
-    sign <- case_when(data$change > 0 ~ paste("Up", prettyNum(abs(data$change), big.mark = ","), "from last month", sep = " "),
-                      data$change == 0 ~ "No change from last month",
-                      data$change < 0 ~ paste("Down", prettyNum(abs(data$change), big.mark = ","), "from last month", sep = " "))
-    
-    icon <- case_when(data$change > 0 ~ "arrow-alt-circle-up",
-                      data$change == 0 ~ "arrow-alt-circle-right",
-                      data$change < 0 ~ "arrow-alt-circle-down")
-    
-    value_box(
-      title = data$label,
-      value = prettyNum(data$current, big.mark = ","),
-      showcase = icon(icon),
-      sign,
-      theme = value_box_theme(
-        bg = "#3c8dbc"  # similar to shinydashboard light-blue
+    card(
+      card_header(h3(data$label), class = "lfs-card-header"),
+      card_body(
+        gap = 0,
+        h4(paste0(data$current, "%")),
+        span(icon(data$icon, style = paste0("color: var(", data$color, ")")), 
+             data$mom_change, 
+             "p.p.",
+             "from last month"
+        ),
+        span(icon(data$yoy_icon, style = paste0("color: var(", data$yoy_color, ")")), 
+             data$yoy_change, 
+             "p.p.",
+             "from last year"
+        )
       )
     )
   })
