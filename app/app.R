@@ -141,9 +141,7 @@ ui <- function(req) {
                 ### Trends tab ----
                 nav_panel(
                   "Trends",
-                  br(),
-                  h2(formatted_date),
-                  br(),
+                  h2(formatted_date, class = "mt-4 mb-3"),
                   navset_card_tab(
                     title = "Overall trends",
                     id = "hl_ts",
@@ -152,7 +150,6 @@ ui <- function(req) {
                     nav_panel("Participation rate", dygraphOutput("hl_part_cht")),
                     footer = em("Shaded areas indicate Canadian recessions")
                   ),
-                  br(),
                   navset_card_tab(
                     title = "Age and gender",
                     id = "hl_ag",
@@ -187,7 +184,6 @@ ui <- function(req) {
                         inline = TRUE),
                       plotOutput("hl_part_ag_m_or_y"))
                   ),
-                  br(),
                   card(
                     card_header("Regions"),
                     layout_columns(
