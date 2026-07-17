@@ -18,8 +18,6 @@
 library(tidyverse)      ## includes: dplyr, ggplot2, tibble, readr, tidyr, purrr, stringr, forcats
 library(rsconnect)      ## deployment interface for shiny apps
 library(shiny)          ## for most app functions: reactive(), downloadHandler(), renderUI(), shinyApp(), etc.
-library(shinydashboard) ## for box()
-library(shinyWidgets)   ## for useShinydashboard()
 library(bslib)
 library(cansim)         ## for cansim data
 library(lubridate)    ## for ymd() (date parsing)

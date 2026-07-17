@@ -19,8 +19,7 @@ google_tracking <- FALSE
 ## Start of app ----
 # UI demonstrating column layouts
 ui <- function(req) {
-  fluidPage(shinyWidgets::useShinydashboard(),
-            title = "LFS App",
+  fluidPage(title = "LFS App",
             theme = "bootstrap.css",
             HTML("<html lang='en'>"),
             
@@ -187,7 +186,7 @@ ui <- function(req) {
                       plotOutput("hl_reg_map"),
                       plotOutput("hl_cma_map")
                     )
-                  ),
+                  )),
                 ### Definitions tab ----
                 nav_panel("Definitions",
                           column(width = 12,
