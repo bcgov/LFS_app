@@ -58,35 +58,32 @@ ui <- function(req) {
            ## Tabset start ----  
            navset_tab(id = "tabs",
                 ### Highlights tab ----
-                nav_panel("Highlights",
-                         #### Sidebar: About column ----
-                         column(width = 3, 
-                                tags$fieldset(style = "width: 90%",
-                                  br(),
-                                  tags$legend(h2(formatted_date)),
-                                  "Statistics Canada's monthly Labour Force Survey (LFS) captures data
-                                  about the labour market and provides estimates of 
-                                  employment and unemployment which are the most 
-                                  timely and important measures of performance of the Canadian economy.",
-                                  br(), br(),
-                                  "Navigate the tabs to find statistics that reflect the 
-                                  labour market characteristics of the population of B.C.",
-                                  br(), br(),
-                                  "Learn more ", 
-                                  tags$a("about the Labour Force Survey", 
-                                         href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey"),
-                                  br(),br()
-                                  )),
-                         #### Content ----
-                         column(width = 9, 
-                                br(),
-                                fluidRow(column(width = 6,
-                                       fluidRow(valueBoxOutput(width = NULL, "emp")),
-                                       fluidRow(valueBoxOutput(width = NULL, "unemprate")),
-                                       fluidRow(valueBoxOutput(width = NULL, "partrate"))),
-                                column(width = 6,
-                                       grVizOutput("flow", height = 300)))
-                                )),
+                nav_panel(
+                  "Highlights",
+                  h2(formatted_date, class = "mt-4 mb-3"),
+                  h3("Overview"),
+                  layout_column_wrap(
+                    width = 1/2,
+                    p("Statistics Canada's monthly Labour Force Survey (LFS) captures data
+                      about the labour market and provides estimates of 
+                      employment and unemployment which are the most 
+                      timely and important measures of performance of the Canadian economy. 
+                      Navigate the tabs to find statistics that reflect the 
+                      labour market characteristics of the population of B.C.",
+                      tags$a("Learn more about the Labour Force Survey", 
+                             href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey")),
+                    grVizOutput("flow", height = 300)
+                  ),
+                  h3("Highlights"),
+                  layout_column_wrap(
+                    width = 1/3,
+                    uiOutput("emp"),
+                    uiOutput("unemprate"),
+                    uiOutput("partrate")
+                 )
+                    
+
+                  ),
                 ### Data tables tab ----
                 nav_panel(
                   "Data tables",
@@ -220,7 +217,7 @@ server <- function(input, output, session) {
   ## Tab 0: Highlights ----
   
   ### Valueboxes ----
-  output$unemprate <- renderValueBox({
+  output$unemprate <- renderUI({
     
     data <- hl_stats %>%
       filter(label == "Unemployment Rate")
@@ -233,15 +230,18 @@ server <- function(input, output, session) {
                       data$change == 0 ~ "arrow-alt-circle-right",
                       data$change < 0 ~ "arrow-alt-circle-down")
     
-    valueBox(
-      value = tags$p(paste0(data$label, ": ", data$current, "%"), style = "font-size: 50%;"),
-      subtitle = sign,
-      icon = icon(icon),
-      color = "light-blue"
+    value_box(
+      title = data$label,
+      value = paste0(data$current, "%"),
+      showcase = icon(icon),
+      sign,
+      theme = value_box_theme(
+        bg = "#3c8dbc"  # similar to shinydashboard light-blue
+      )
     )
   })
   
-  output$partrate <- renderValueBox({
+  output$partrate <- renderUI({
     
     data <- hl_stats %>%
       filter(label == "Participation Rate")
@@ -254,15 +254,18 @@ server <- function(input, output, session) {
                       data$change == 0 ~ "arrow-alt-circle-right",
                       data$change < 0 ~ "arrow-alt-circle-down")
     
-    valueBox(
-      value = tags$p(paste0(data$label, ": ", data$current, "%"), style = "font-size: 50%;"),
-      subtitle = sign,
-      icon = icon(icon),
-      color = "light-blue"
+    value_box(
+      title = data$label,
+      value = paste0(data$current, "%"),
+      showcase = icon(icon),
+      sign,
+      theme = value_box_theme(
+        bg = "#3c8dbc"  # similar to shinydashboard light-blue
+      )
     )
   })
   
-  output$emp <- renderValueBox({
+  output$emp <- renderUI({
     
     data <- hl_stats %>%
       filter(label == "Employment")
@@ -275,11 +278,14 @@ server <- function(input, output, session) {
                       data$change == 0 ~ "arrow-alt-circle-right",
                       data$change < 0 ~ "arrow-alt-circle-down")
     
-    valueBox(
-      value = tags$p(paste0(data$label, ": ", prettyNum(data$current, big.mark = ",")), style = "font-size: 50%;"),
-      subtitle = sign,
-      icon = icon(icon),
-      color = "light-blue"
+    value_box(
+      title = data$label,
+      value = prettyNum(data$current, big.mark = ","),
+      showcase = icon(icon),
+      sign,
+      theme = value_box_theme(
+        bg = "#3c8dbc"  # similar to shinydashboard light-blue
+      )
     )
   })
   
