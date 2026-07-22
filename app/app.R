@@ -180,14 +180,18 @@ ui <- function(req) {
                         inline = TRUE),
                       plotOutput("hl_part_ag_m_or_y"))
                   ),
-                  card(
-                    card_header("Regions"),
-                    layout_columns(
-                      col_widths = c(6, 6),
-                      plotOutput("hl_reg_map"),
+                  layout_columns(
+                    col_widths = c(6, 6),
+                    card(
+                      card_header("Unemployment rate by region"),
+                      plotOutput("hl_reg_map")
+                    ),
+                    card(
+                      card_header("Unemployment rate by census metropolitan area"),
                       plotOutput("hl_cma_map")
                     )
-                  )),
+                  )
+                ),
                 ### Definitions tab ----
                 nav_panel(
                   "Definitions",
@@ -519,9 +523,7 @@ server <- function(input, output, session) {
       geom_sf(data = geo_data, aes(fill = value ), colour = "dark grey", lwd = 0.5) +
       geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5, fontface = "bold") +
       labs(x = NULL, y = NULL,
-           caption = "Unadjusted\n3 Month Moving Average",
-           title = "Unemployment Rate",
-           subtitle = "by Region") +
+           caption = "Unadjusted\n3 Month Moving Average") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
       scale_color_manual(values = c("white" = "white", "black" = "black"))+
       guides(color = FALSE) +
@@ -576,9 +578,7 @@ server <- function(input, output, session) {
       geom_sf(data = geo_data, aes(fill = value), colour = "dark grey", lwd = 0.4) +
       geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5, fontface = "bold") +
       labs(x = NULL, y = NULL,
-           caption = "Unadjusted\n3 Month Moving Average",
-           title = "Unemployment Rate",
-           subtitle = "by Census Metropolitan Area") +
+           caption = "Unadjusted\n3 Month Moving Average") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
       theme_minimal() +
       theme(
