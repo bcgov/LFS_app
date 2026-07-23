@@ -351,3 +351,51 @@ print_summary_table <- function(data, zero_data_note) {
 # data<- get_summary_table() %>%
 #   filter(data_type == "Seasonally adjusted") %>%
 #   select(-data_type)
+
+
+
+## Bar chart functions ----
+## Render a bar chart with positive and negative values
+## code from https://glin.github.io/reactable/articles/cookbook/cookbook.html?q=image#bar-charts
+bar_chart_pos_neg <- function(label, value, max_value = 1, height = "1.5rem",
+                              pos_fill = "#4F81BD", neg_fill = "#C00000") {
+  neg_chart <- div(style = list(flex = "1 1 0"))
+  pos_chart <- div(style = list(flex = "1 1 0"))
+  width <- paste0(abs(value / max_value) * 40, "%")
+  
+  
+  if (value < 0) {
+    bar <- div(style = list(marginLeft = "0.5rem", background = neg_fill, width = width, height = height))
+    chart <- div(
+      style = list(display = "flex", alignItems = "center", justifyContent = "flex-end"),
+      label,
+      bar
+    )
+    neg_chart <- tagAppendChild(neg_chart, chart)
+  } else {
+    bar <- div(style = list(marginRight = "0.5rem", background = pos_fill, width = width, height = height))
+    chart <- div(style = list(display = "flex", alignItems = "center"), bar, label)
+    pos_chart <- tagAppendChild(pos_chart, chart)
+  }
+  
+  div(style = list(display = "flex", 
+                   position = "relative",
+                   width = "100%",
+                   minHeight = "2.25rem",
+                   alignItems = "center"
+  ),
+  
+  div(
+    style = list(
+      position = "absolute",
+      left = "50%",
+      top = 0,
+      bottom = 0,
+      width = "1px",
+      height = "2.25rem",
+      background = "#bdbdbd"
+    )
+  ),
+  
+  neg_chart, pos_chart)
+}

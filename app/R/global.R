@@ -35,6 +35,7 @@ library(bcmaps) ## for maps
 library(rmapshaper) ## for maps
 library(viridis) ## for maps
 library(markdown)
+library(reactable)
 
 options(scipen = 9999)  ## so chart axes read properly
 

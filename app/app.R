@@ -71,10 +71,18 @@ ui <- function(req) {
                       Navigate the tabs to find statistics that reflect the 
                       labour market characteristics of the population of B.C.",
                       tags$a("Learn more about the Labour Force Survey", 
-                             href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey")),
+                             href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey"))
+                  ),
+                  h3("Key indicators"),
+                  layout_columns(
+                    col_widths = bslib::breakpoints(
+                      xs = c(12, 12),
+                      xxl = c(8, 4)
+                    ),
+                    reactableOutput("key_indicators_table"),
                     grVizOutput("flow", height = 300)
                   ),
-                  h3("Highlights"),
+                  
                   layout_column_wrap(
                     width = "350px",
                     uiOutput("emp"),
@@ -216,6 +224,130 @@ server <- function(input, output, session) {
   
   ## Tab 0: Highlights ----
   
+  output$key_indicators_table <- renderReactable({
+    
+    reactable(
+      key_indicators_stats_fmtd,
+      bordered = FALSE,
+      striped = FALSE,
+      highlight = FALSE,
+      compact = TRUE,
+      pagination = FALSE,
+      searchable = FALSE,
+      defaultColDef = colDef(
+        show = FALSE,
+        html = TRUE,
+        align = "right"
+      ),
+      columns = list(
+        
+        label_order = colDef(
+          sticky = "left",
+          show = TRUE,
+          name = "",
+          align = "left",
+          minWidth = 230,
+          cell = function(value, index) {
+            key_indicators_stats_fmtd$label[index]
+          }
+        ),
+        
+        arrow = colDef(
+          show = TRUE,
+          name = "",
+          align = "center",
+          sortable = FALSE,
+          minWidth = 70,
+          cell = function(value, index) {
+            
+            colour <- key_indicators_stats_fmtd$color[index]
+            
+            tags$span(
+              style = paste0(
+                "background-color:", colour, "18;", # add opacity hex
+                "border-radius:15%;",
+                "width:100%;",
+                "height:100%;",
+                "display:inline-flex;",
+                "align-items:center;",
+                "justify-content:center;",
+                "padding:0px"
+              ),
+              icon(
+                name = value,
+                class = "fa-xl",
+                style = paste0(
+                  "color:", colour, ";"
+                )
+              )
+            )
+          }
+        ),
+        
+        mom_change = colDef(
+          show = TRUE,
+          name = "Change from<br>previous month",
+          cell = function(value, index){
+            unit_group <- key_indicators_stats_fmtd$group[index]
+            max_value <- key_indicators_stats_fmtd$mom_max[index]
+            
+            
+            label = switch(
+              unit_group,
+              "1" = comma(value),
+              "2" = paste0(value, "ppt"),
+              "3" = dollar(value)
+            )
+            
+            bar_chart_pos_neg(label, value, max_value = max_value)
+          },
+          align = "center",
+          minWidth = 200
+          
+        ),
+        
+        yoy_change = colDef(
+          show = TRUE,
+          name = "Change from<br>previous year",
+          cell = function(value, index){
+            unit_group <- key_indicators_stats_fmtd$group[index]
+            max_value <- key_indicators_stats_fmtd$yoy_max[index]
+            
+            label = switch(
+              unit_group,
+              "1" = comma(value),
+              "2" = paste0(value, "ppt"),
+              "3" = dollar(value)
+            )
+            
+            bar_chart_pos_neg(label, value, max_value = max_value)
+          },
+          align = "center",
+          minWidth = 200
+        ),
+        
+        yoy_pct_change = colDef(
+          show = TRUE,
+          name = "Change from<br>previous year (%)",
+          cell = function(value, index){
+            if(is.na(value)) {
+              ""
+            } else {
+              max_value <- key_indicators_stats_fmtd$yoy_pct_max[index]
+              
+              label = percent(value/100, accuracy = 0.1)
+              
+              bar_chart_pos_neg(label, value, max_value = max_value)
+            }
+          },
+          align = "center",
+          minWidth = 200
+        )
+        
+      )
+    )
+  })
+  
   ### Valueboxes ----
   # output$unemprate <- renderUI({
   #   
@@ -267,6 +399,8 @@ server <- function(input, output, session) {
   
   value_box_info <- function(indicator) {
     
+    multiplier <- ifelse(str_detect(indicator, "Unemployment"), -1, 1)
+    
     data <- hl_stats %>%
       filter(label == indicator)
     
@@ -276,9 +410,9 @@ server <- function(input, output, session) {
       data$mom_change < 0 ~ "arrow-down")
     
     data$color <- case_when(
-      data$mom_change > 0 ~ " --icons-color-success",
-      data$mom_change == 0 ~ "--icons-color-primary",
-      data$mom_change < 0 ~ "--icons-color-danger")
+      multiplier * data$mom_change > 0 ~ " --icons-color-success",
+      multiplier * data$mom_change == 0 ~ "--icons-color-primary",
+      multiplier * data$mom_change < 0 ~ "--icons-color-danger")
     
     data$yoy_icon <- case_when(
       data$yoy_change > 0 ~ "arrow-up",
@@ -286,9 +420,9 @@ server <- function(input, output, session) {
       data$yoy_change < 0 ~ "arrow-down")
     
     data$yoy_color <- case_when(
-      data$yoy_change > 0 ~ " --icons-color-success",
-      data$yoy_change == 0 ~ "--icons-color-primary",
-      data$yoy_change < 0 ~ "--icons-color-danger")
+      multiplier * data$yoy_change > 0 ~ " --icons-color-success",
+      multiplier * data$yoy_change == 0 ~ "--icons-color-primary",
+      multiplier * data$yoy_change < 0 ~ "--icons-color-danger")
     
     data
   }
