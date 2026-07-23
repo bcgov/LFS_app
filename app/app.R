@@ -86,7 +86,7 @@ ui <- function(req) {
                        layout_columns(
                          col_widths = bslib::breakpoints(
                            xs = c(12, 12),
-                           xxl = c(8, 4)
+                           xxl = c(9, 3)
                          ),
                          reactableOutput("key_indicators_table"),
                          grVizOutput("flow", height = 300)
@@ -230,7 +230,7 @@ ui <- function(req) {
 ## define server logic ----
 server <- function(input, output, session) {  
   if(cansim_error) {
-    
+    do_nothing <- TRUE
   } else {
   
   bcsapps::bcsHeaderServer(id = 'header', links = TRUE)
@@ -240,126 +240,8 @@ server <- function(input, output, session) {
   
   output$key_indicators_table <- renderReactable({
     
-    reactable(
-      key_indicators_stats_fmtd,
-      bordered = FALSE,
-      striped = FALSE,
-      highlight = FALSE,
-      compact = TRUE,
-      pagination = FALSE,
-      searchable = FALSE,
-      defaultColDef = colDef(
-        show = FALSE,
-        html = TRUE,
-        align = "right"
-      ),
-      columns = list(
-        
-        label_order = colDef(
-          sticky = "left",
-          show = TRUE,
-          name = "",
-          align = "left",
-          minWidth = 230,
-          cell = function(value, index) {
-            key_indicators_stats_fmtd$label[index]
-          }
-        ),
-        
-        arrow = colDef(
-          show = TRUE,
-          name = "",
-          align = "center",
-          sortable = FALSE,
-          minWidth = 70,
-          cell = function(value, index) {
-            
-            colour <- key_indicators_stats_fmtd$color[index]
-            
-            tags$span(
-              style = paste0(
-                "background-color:", colour, "18;", # add opacity hex
-                "border-radius:15%;",
-                "width:100%;",
-                "height:100%;",
-                "display:inline-flex;",
-                "align-items:center;",
-                "justify-content:center;",
-                "padding:0px"
-              ),
-              icon(
-                name = value,
-                class = "fa-xl",
-                style = paste0(
-                  "color:", colour, ";"
-                )
-              )
-            )
-          }
-        ),
-        
-        mom_change = colDef(
-          show = TRUE,
-          name = "Change from<br>previous month",
-          cell = function(value, index){
-            unit_group <- key_indicators_stats_fmtd$group[index]
-            max_value <- key_indicators_stats_fmtd$mom_max[index]
-            
-            
-            label = switch(
-              unit_group,
-              "1" = comma(value),
-              "2" = paste0(value, "ppt"),
-              "3" = dollar(value)
-            )
-            
-            bar_chart_pos_neg(label, value, max_value = max_value)
-          },
-          align = "center",
-          minWidth = 200
-          
-        ),
-        
-        yoy_change = colDef(
-          show = TRUE,
-          name = "Change from<br>previous year",
-          cell = function(value, index){
-            unit_group <- key_indicators_stats_fmtd$group[index]
-            max_value <- key_indicators_stats_fmtd$yoy_max[index]
-            
-            label = switch(
-              unit_group,
-              "1" = comma(value),
-              "2" = paste0(value, "ppt"),
-              "3" = dollar(value)
-            )
-            
-            bar_chart_pos_neg(label, value, max_value = max_value)
-          },
-          align = "center",
-          minWidth = 200
-        ),
-        
-        yoy_pct_change = colDef(
-          show = TRUE,
-          name = "Change from<br>previous year (%)",
-          cell = function(value, index){
-            if(is.na(value)) {
-              ""
-            } else {
-              max_value <- key_indicators_stats_fmtd$yoy_pct_max[index]
-              
-              label = percent(value/100, accuracy = 0.1)
-              
-              bar_chart_pos_neg(label, value, max_value = max_value)
-            }
-          },
-          align = "center",
-          minWidth = 200
-        )
-        
-      )
-    )
+    table <- create_reactable(key_indicators_stats_fmtd)
+    
   })
   
   ### Valueboxes ----
@@ -749,6 +631,7 @@ server <- function(input, output, session) {
   
   ## Update selectInput to summary when Data tables tab is selected
   observe({
+    req(input$tab)
     
     if(input$tabs == "Data tables") {
       updateSelectInput(session, inputId = "select_data_table", selected = "summary")

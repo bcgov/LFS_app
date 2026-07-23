@@ -354,15 +354,14 @@ print_summary_table <- function(data, zero_data_note) {
 
 
 
-## Bar chart functions ----
 ## Render a bar chart with positive and negative values
 ## code from https://glin.github.io/reactable/articles/cookbook/cookbook.html?q=image#bar-charts
 bar_chart_pos_neg <- function(label, value, max_value = 1, height = "1.5rem",
                               pos_fill = "#4F81BD", neg_fill = "#C00000") {
+  
   neg_chart <- div(style = list(flex = "1 1 0"))
   pos_chart <- div(style = list(flex = "1 1 0"))
   width <- paste0(abs(value / max_value) * 40, "%")
-  
   
   if (value < 0) {
     bar <- div(style = list(marginLeft = "0.5rem", background = neg_fill, width = width, height = height))
@@ -398,4 +397,134 @@ bar_chart_pos_neg <- function(label, value, max_value = 1, height = "1.5rem",
   ),
   
   neg_chart, pos_chart)
+}
+
+create_reactable <- function(data) {
+  
+  reactable(
+    data,
+    bordered = FALSE,
+    striped = TRUE,
+    highlight = FALSE,
+    compact = TRUE,
+    pagination = FALSE,
+    searchable = FALSE,
+    style = list(fontFamily = "BC Sans"),
+    defaultColDef = colDef(
+      show = FALSE,
+      html = TRUE,
+      align = "right"
+    ),
+    columns = list(
+      
+      label_order = colDef(
+        sticky = "left",
+        show = TRUE,
+        name = "",
+        align = "left",
+        minWidth = 160,
+        # minWidth = 230,
+        style = list(overflowWrap = "break-word"),
+        cell = function(value, index) {
+          data$label[index]
+        }
+      ),
+      
+      arrow = colDef(
+        show = TRUE,
+        name = "",
+        align = "center",
+        sortable = FALSE,
+        minWidth = 70,
+        cell = function(value, index) {
+          
+          colour <- data$color[index]
+          
+          tags$span(
+            style = paste0(
+              "background-color:", colour, "18;", # add opacity hex
+              "border-radius:15%;",
+              "width:100%;",
+              "height:100%;",
+              "display:inline-flex;",
+              "align-items:center;",
+              "justify-content:center;",
+              "padding:0px"
+            ),
+            icon(
+              name = value,
+              class = "fa-xl",
+              style = paste0(
+                "color:", colour, ";"
+              )
+            )
+          )
+        }
+      ),
+      
+      mom_change = colDef(
+        show = TRUE,
+        name = "Change from<br>previous month",
+        style = list(alignItems = "center"),
+        cell = function(value, index){
+          unit_group <- data$group[index]
+          max_value <- data$mom_max[index]
+          
+          
+          label = switch(
+            unit_group,
+            "1" = comma(value),
+            "2" = paste0(value, "ppt"),
+            "3" = dollar(value)
+          )
+          
+          bar_chart_pos_neg(label, value, max_value = max_value)
+        },
+        align = "center",
+        minWidth = 200
+        
+      ),
+      
+      yoy_change = colDef(
+        show = TRUE,
+        name = "Change from<br>previous year",
+        style = list(alignItems = "center"),
+        cell = function(value, index){
+          unit_group <- data$group[index]
+          max_value <- data$yoy_max[index]
+          
+          label = switch(
+            unit_group,
+            "1" = comma(value),
+            "2" = paste0(value, "ppt"),
+            "3" = dollar(value)
+          )
+          
+          bar_chart_pos_neg(label, value, max_value = max_value)
+        },
+        align = "center",
+        minWidth = 200
+      ),
+      
+      yoy_pct_change = colDef(
+        show = TRUE,
+        name = "Change from<br>previous year (%)",
+        style = list(alignItems = "center"),
+        cell = function(value, index){
+          if(is.na(value)) {
+            ""
+          } else {
+            max_value <- data$yoy_pct_max[index]
+            
+            label = percent(value/100, accuracy = 0.1)
+            
+            bar_chart_pos_neg(label, value, max_value = max_value)
+          }
+        },
+        align = "center",
+        minWidth = 200
+      )
+      
+    )
+  )
 }
