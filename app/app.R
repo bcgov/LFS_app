@@ -126,7 +126,7 @@ ui <- function(req) {
                     #### Content ----
                     div(
                       uiOutput("table_name"),
-                      DT::dataTableOutput("data_table"),
+                      withSpinner(DT::dataTableOutput("data_table")),
                       uiOutput("avg_table_name"),
                       DT::dataTableOutput("avg_table"),
                       div(
@@ -147,9 +147,9 @@ ui <- function(req) {
                   navset_card_tab(
                     title = "Overall trends",
                     id = "hl_ts",
-                    nav_panel("Employment",dygraphOutput("hl_emp_cht")),
-                    nav_panel("Unemployment rate", dygraphOutput("hl_unemp_cht")),
-                    nav_panel("Participation rate", dygraphOutput("hl_part_cht")),
+                    nav_panel("Employment", withSpinner(dygraphOutput("hl_emp_cht"))),
+                    nav_panel("Unemployment rate", withSpinner(dygraphOutput("hl_unemp_cht"))),
+                    nav_panel("Participation rate", withSpinner(dygraphOutput("hl_part_cht"))),
                     footer = div(
                       em("Shaded areas indicate Canadian recessions"),
                       p("To zoom in on dates, move the bottom slider or click and drag your mouse on part of the chart. Double click on the chart to reset."))
@@ -166,7 +166,7 @@ ui <- function(req) {
                                     "Change from same month, previous year" = "yoy"),
                         selected = "mom",
                         inline = TRUE),
-                      plotOutput("hl_emp_ag_m_or_y")),
+                      withSpinner(plotOutput("hl_emp_ag_m_or_y"))),
                     nav_panel(
                       "Unemployment rate", 
                       radioButtons(
@@ -176,7 +176,7 @@ ui <- function(req) {
                                     "Change from same month, previous year" = "yoy"),
                         selected = "mom",
                         inline = TRUE),
-                      plotOutput("hl_unemp_ag_m_or_y")),
+                      withSpinner(plotOutput("hl_unemp_ag_m_or_y"))),
                     nav_panel(
                       "Participation rate", 
                       radioButtons(
@@ -186,17 +186,17 @@ ui <- function(req) {
                                     "Change from same month, previous year" = "yoy"),
                         selected = "mom",
                         inline = TRUE),
-                      plotOutput("hl_part_ag_m_or_y"))
+                      withSpinner(plotOutput("hl_part_ag_m_or_y")))
                   ),
                   layout_columns(
                     col_widths = c(6, 6),
                     card(
                       card_header("Unemployment rate by region"),
-                      plotOutput("hl_reg_map")
+                      withSpinner(plotOutput("hl_reg_map"))
                     ),
                     card(
                       card_header("Unemployment rate by census metropolitan area"),
-                      plotOutput("hl_cma_map")
+                      withSpinner(plotOutput("hl_cma_map"))
                     )
                   )
                 ),

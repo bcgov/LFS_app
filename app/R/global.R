@@ -38,6 +38,10 @@ library(markdown)
 library(reactable)
 
 options(scipen = 9999)  ## so chart axes read properly
+options(spinner.type = 3,
+        spinner.size = 0.5, 
+        spinner.color.background = "white",
+        spinner.caption = "Loading...")
 
 ### vectors and metadata ----
 vectors <- qs::qread("vector_metadata.qs")
