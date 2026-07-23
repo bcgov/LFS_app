@@ -45,13 +45,13 @@ key_indicators_vectors <- tribble(
 )
 
 ## Download the latest data from cansim ----
-## (13 periods = 12 months + 1)
 
-#cansim_error <- NULL
-
+## if error connecting to cansim, app will display a "temporarily unavailable" message instead of crashing
+cansim_error <<- FALSE
 cansim_data <- tryCatch(
  {
-    # Download the data
+    ## Download the data
+   ## (13 periods = 12 months + 1)
     left_join(
       key_indicators_vectors,
       get_cansim_vector_for_latest_periods(
@@ -62,11 +62,12 @@ cansim_data <- tryCatch(
     )
   },
   error = function(e) {
-    cansim_error <<- paste("Failed connection to Statistics Canada. Please try again later")
+    cansim_error <<- TRUE
     NULL
   }
 )
 
+if(!cansim_error) {
 
 ## Calculate stats ----
 key_indicators_stats <- cansim_data %>%
@@ -118,5 +119,5 @@ key_indicators_stats_fmtd <- key_indicators_stats %>%
     label_order = row_number()
   ) %>%
   select(group, label_order, label, arrow, color, starts_with("mom"), starts_with("yoy"))
-
+}
 

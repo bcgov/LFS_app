@@ -19,205 +19,219 @@ google_tracking <- FALSE
 ## Start of app ----
 # UI demonstrating column layouts
 ui <- function(req) {
-  htmltools::tags$html(
-    lang = "en",
-    
-    htmltools::tagList(
+  
+  if(cansim_error) { 
+    page_fluid( 
+      h2("Application temporarily unavailable", style = "padding-top:2rem; padding-bottom:2rem"),
+      p("The application was unable to connect to Statistics Canada's data service while loading the required data."),
+      p("Please try again later. If the problem persists, ",
+        a(href = "https://dpdd.atlassian.net/servicedesk/customer/portal/12", "contact BC Stats."))
+      )  
+  } else { 
+    htmltools::tags$html(
+      lang = "en",
       
-      ## styles, etc.
-      htmltools::tags$head(
-        htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "BC_Sans.css"),  ## set up BC Sans fonts
-        htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "variables.css"),## bcgov design tokens
-        htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),   ## custom styles
-        htmltools::tags$link(rel = "shortcut icon", href = "favicon.png"),  ## add BCGov favicon
-        if(google_tracking){  htmltools::includeHTML("www/google-analytics.html") },  ## to add GA tracking code (see global.R for more details)
-      ),
-      
-      ## Custom formatting ----
-      ## formatting for icons in valueBoxes
-      tags$head(tags$style(HTML('.small-box .icon-large {top: -10px;}'))),
-      
-      ## formatting for tabBox content
-      tags$head(tags$style(HTML('.nav-tabs-custom>.tab-content {border: 1px solid #3c8dbc}'))),
-      tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active
+      htmltools::tagList(
+        
+        ## styles, etc.
+        htmltools::tags$head(
+          htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "BC_Sans.css"),  ## set up BC Sans fonts
+          htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "variables.css"),## bcgov design tokens
+          htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),   ## custom styles
+          htmltools::tags$link(rel = "shortcut icon", href = "favicon.png"),  ## add BCGov favicon
+          if(google_tracking){  htmltools::includeHTML("www/google-analytics.html") }  ## to add GA tracking code (see global.R for more details)
+        ),
+        
+        ## Custom formatting ----
+        ## formatting for icons in valueBoxes
+        tags$head(tags$style(HTML('.small-box .icon-large {top: -10px;}'))),
+        
+        ## formatting for tabBox content
+        tags$head(tags$style(HTML('.nav-tabs-custom>.tab-content {border: 1px solid #3c8dbc}'))),
+        tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active
                                       {border-top-color: #3c8dbc; border-left: 1px solid #3c8dbc;'))),
-      tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active>a {border-right: 1px solid #3c8dbc}'))),
-      
-      ## Header column ----
-      bcsHeaderUI(
-        id = "header",
-        appname = "Labour Market Statistics for British Columbia",
-        mobilename = "Labour Market",
-        github = "https://github.com/bcgov/LFS_app"
-      ),
-              
-    ## Main body column ----
-    ## Make changes to this column
-    page_fluid(
-           
-           ## Tabset start ----  
-           navset_tab(id = "tabs",
-                ### Highlights tab ----
-                nav_panel(
-                  "Highlights",
-                  h2(formatted_date, class = "mt-4 mb-3"),
-                  h3("Overview"),
-                  layout_column_wrap(
-                    width = 1/2,
-                    p("Statistics Canada's monthly Labour Force Survey (LFS) captures data
+        tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active>a {border-right: 1px solid #3c8dbc}'))),
+        
+        ## Header column ----
+        bcsHeaderUI(
+          id = "header",
+          appname = "Labour Market Statistics for British Columbia",
+          mobilename = "Labour Market",
+          github = "https://github.com/bcgov/LFS_app"
+        ),
+        
+        ## Main body column ----
+        ## Make changes to this column
+        page_fluid(
+          
+          ## Tabset start ----  
+          navset_tab(id = "tabs",
+                     ### Highlights tab ----
+                     nav_panel(
+                       "Highlights",
+                       h2(formatted_date, class = "mt-4 mb-3"),
+                       h3("Overview"),
+                       layout_column_wrap(
+                         width = 1/2,
+                         p("Statistics Canada's monthly Labour Force Survey (LFS) captures data
                       about the labour market and provides estimates of 
                       employment and unemployment which are the most 
                       timely and important measures of performance of the Canadian economy. 
                       Navigate the tabs to find statistics that reflect the 
                       labour market characteristics of the population of B.C.",
-                      tags$a("Learn more about the Labour Force Survey", 
-                             href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey"))
-                  ),
-                  h3("Key indicators"),
-                  layout_columns(
-                    col_widths = bslib::breakpoints(
-                      xs = c(12, 12),
-                      xxl = c(8, 4)
-                    ),
-                    reactableOutput("key_indicators_table"),
-                    grVizOutput("flow", height = 300)
-                  ),
-                  
-                  layout_column_wrap(
-                    width = "350px",
-                    uiOutput("emp"),
-                    uiOutput("unemprate"),
-                    uiOutput("partrate")
-                 )
-                    
-
-                  ),
-                ### Data tables tab ----
-                nav_panel(
-                  "Data tables",
-                  layout_columns(
-                    col_widths = c(3, 9),
-                    #### Sidebar: Selections ----
-                    div(
-                      h2(formatted_date, class = "mt-4 mb-3"),
-                      selectInput(
-                        "select_data_table",
-                        label = "Select table:",
-                        ## Add a default value to be initially selected
-                        ## This will be updated once Data tables tab is selected
-                        ## Triggering reactive event 
-                        ## i.e., won't load cansim data until tab selected
-                        choices = c("Select table" = "default", choices_list),
-                        selected = "default",
-                        width = "90%"),
-                      radioButtons(
-                        "select_data_type",
-                        label = "Select data type:",
-                        choices = c("Seasonally adjusted",
-                                    "Unadjusted",
-                                    "Annual")),
-                      downloadButton(outputId = "download_button", label = "Download table (.csv)"),
-                      div(
-                        class = "mt-4",
-                        style = "width: 90%",
-                        p(strong("Note:"), "downloaded data will contain all data types for the selected table")
-                        )
-                      ),
-                    #### Content ----
-                    div(
-                      uiOutput("table_name"),
-                      withSpinner(DT::dataTableOutput("data_table")),
-                      uiOutput("avg_table_name"),
-                      DT::dataTableOutput("avg_table"),
-                      div(
-                        class = "mt-5 mb-5",
-                        p(strong("Prepared by:"), "BC Stats"),
-                        p(strong("Source:"),
-                          'Statistics Canada, Labour Force Survey.
+                           tags$a("Learn more about the Labour Force Survey", 
+                                  href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey"))
+                       ),
+                       h3("Key indicators"),
+                       layout_columns(
+                         col_widths = bslib::breakpoints(
+                           xs = c(12, 12),
+                           xxl = c(8, 4)
+                         ),
+                         reactableOutput("key_indicators_table"),
+                         grVizOutput("flow", height = 300)
+                       ),
+                       
+                       layout_column_wrap(
+                         width = "350px",
+                         uiOutput("emp"),
+                         uiOutput("unemprate"),
+                         uiOutput("partrate")
+                       )
+                       
+                       
+                     ),
+                     ### Data tables tab ----
+                     nav_panel(
+                       "Data tables",
+                       layout_columns(
+                         col_widths = c(3, 9),
+                         #### Sidebar: Selections ----
+                         div(
+                           h2(formatted_date, class = "mt-4 mb-3"),
+                           selectInput(
+                             "select_data_table",
+                             label = "Select table:",
+                             ## Add a default value to be initially selected
+                             ## This will be updated once Data tables tab is selected
+                             ## Triggering reactive event 
+                             ## i.e., won't load cansim data until tab selected
+                             choices = c("Select table" = "default", choices_list),
+                             selected = "default",
+                             width = "90%"),
+                           radioButtons(
+                             "select_data_type",
+                             label = "Select data type:",
+                             choices = c("Seasonally adjusted",
+                                         "Unadjusted",
+                                         "Annual")),
+                           downloadButton(outputId = "download_button", label = "Download table (.csv)"),
+                           div(
+                             class = "mt-4",
+                             style = "width: 90%",
+                             p(strong("Note:"), "downloaded data will contain all data types for the selected table")
+                           )
+                         ),
+                         #### Content ----
+                         div(
+                           uiOutput("table_name"),
+                           withSpinner(DT::dataTableOutput("data_table")),
+                           uiOutput("avg_table_name"),
+                           DT::dataTableOutput("avg_table"),
+                           div(
+                             class = "mt-5 mb-5",
+                             p(strong("Prepared by:"), "BC Stats"),
+                             p(strong("Source:"),
+                               'Statistics Canada, Labour Force Survey.
                           Reproduced and distributed on an "as is"
                           basis with the permission of Statistics Canada.')
-                        )
-                      )
-                    )
-                  ),
-                ### Trends tab ----
-                nav_panel(
-                  "Trends",
-                  h2(formatted_date, class = "mt-4 mb-3"),
-                  navset_card_tab(
-                    title = "Overall trends",
-                    id = "hl_ts",
-                    nav_panel("Employment", withSpinner(dygraphOutput("hl_emp_cht"))),
-                    nav_panel("Unemployment rate", withSpinner(dygraphOutput("hl_unemp_cht"))),
-                    nav_panel("Participation rate", withSpinner(dygraphOutput("hl_part_cht"))),
-                    footer = div(
-                      em("Shaded areas indicate Canadian recessions"),
-                      p("To zoom in on dates, move the bottom slider or click and drag your mouse on part of the chart. Double click on the chart to reset."))
-                  ),
-                  navset_card_tab(
-                    title = "Age and gender",
-                    id = "hl_ag",
-                    nav_panel(
-                      "Employment",
-                      radioButtons(
-                        "emp_m_or_y",
-                        label = NULL,
-                        choices = c("Change from previous month" = "mom",
-                                    "Change from same month, previous year" = "yoy"),
-                        selected = "mom",
-                        inline = TRUE),
-                      withSpinner(plotOutput("hl_emp_ag_m_or_y"))),
-                    nav_panel(
-                      "Unemployment rate", 
-                      radioButtons(
-                        "unemp_m_or_y",
-                        label = NULL,
-                        choices = c("Change from previous month" = "mom",
-                                    "Change from same month, previous year" = "yoy"),
-                        selected = "mom",
-                        inline = TRUE),
-                      withSpinner(plotOutput("hl_unemp_ag_m_or_y"))),
-                    nav_panel(
-                      "Participation rate", 
-                      radioButtons(
-                        "part_m_or_y",
-                        label = NULL,
-                        choices = c("Change from previous month" = "mom",
-                                    "Change from same month, previous year" = "yoy"),
-                        selected = "mom",
-                        inline = TRUE),
-                      withSpinner(plotOutput("hl_part_ag_m_or_y")))
-                  ),
-                  layout_columns(
-                    col_widths = c(6, 6),
-                    card(
-                      card_header("Unemployment rate by region"),
-                      withSpinner(plotOutput("hl_reg_map"))
-                    ),
-                    card(
-                      card_header("Unemployment rate by census metropolitan area"),
-                      withSpinner(plotOutput("hl_cma_map"))
-                    )
-                  )
-                ),
-                ### Definitions tab ----
-                nav_panel(
-                  "Definitions",
-                  h2("Labour Force Statistics Information", class = "mt-4 mb-3"),
-                  includeMarkdown("Definitions.MD")
-                )
-             ),  ## end of navset
-
-    ), ## End of column to make changes to
-    
-    ## footer column ----
-    bcsFooterUI("footer")
-  
-))}
+                           )
+                         )
+                       )
+                     ),
+                     ### Trends tab ----
+                     nav_panel(
+                       "Trends",
+                       h2(formatted_date, class = "mt-4 mb-3"),
+                       navset_card_tab(
+                         title = "Overall trends",
+                         id = "hl_ts",
+                         nav_panel("Employment", withSpinner(dygraphOutput("hl_emp_cht"))),
+                         nav_panel("Unemployment rate", withSpinner(dygraphOutput("hl_unemp_cht"))),
+                         nav_panel("Participation rate", withSpinner(dygraphOutput("hl_part_cht"))),
+                         footer = div(
+                           em("Shaded areas indicate Canadian recessions"),
+                           p("To zoom in on dates, move the bottom slider or click and drag your mouse on part of the chart. Double click on the chart to reset."))
+                       ),
+                       navset_card_tab(
+                         title = "Age and gender",
+                         id = "hl_ag",
+                         nav_panel(
+                           "Employment",
+                           radioButtons(
+                             "emp_m_or_y",
+                             label = NULL,
+                             choices = c("Change from previous month" = "mom",
+                                         "Change from same month, previous year" = "yoy"),
+                             selected = "mom",
+                             inline = TRUE),
+                           withSpinner(plotOutput("hl_emp_ag_m_or_y"))),
+                         nav_panel(
+                           "Unemployment rate", 
+                           radioButtons(
+                             "unemp_m_or_y",
+                             label = NULL,
+                             choices = c("Change from previous month" = "mom",
+                                         "Change from same month, previous year" = "yoy"),
+                             selected = "mom",
+                             inline = TRUE),
+                           withSpinner(plotOutput("hl_unemp_ag_m_or_y"))),
+                         nav_panel(
+                           "Participation rate", 
+                           radioButtons(
+                             "part_m_or_y",
+                             label = NULL,
+                             choices = c("Change from previous month" = "mom",
+                                         "Change from same month, previous year" = "yoy"),
+                             selected = "mom",
+                             inline = TRUE),
+                           withSpinner(plotOutput("hl_part_ag_m_or_y")))
+                       ),
+                       layout_columns(
+                         col_widths = c(6, 6),
+                         card(
+                           card_header("Unemployment rate by region"),
+                           withSpinner(plotOutput("hl_reg_map"))
+                         ),
+                         card(
+                           card_header("Unemployment rate by census metropolitan area"),
+                           withSpinner(plotOutput("hl_cma_map"))
+                         )
+                       )
+                     ),
+                     ### Definitions tab ----
+                     nav_panel(
+                       "Definitions",
+                       h2("Labour Force Statistics Information", class = "mt-4 mb-3"),
+                       includeMarkdown("Definitions.MD")
+                     )
+          )  ## end of navset
+          
+        ), ## End of column to make changes to
+        
+        ## footer column ----
+        bcsFooterUI("footer")
+        
+      ))
+  }
+}
 
 
 ## define server logic ----
-server <- function(input, output, session) {
+server <- function(input, output, session) {  
+  if(cansim_error) {
+    
+  } else {
   
   bcsapps::bcsHeaderServer(id = 'header', links = TRUE)
   bcsapps::bcsFooterServer(id = 'footer')
@@ -988,7 +1002,7 @@ server <- function(input, output, session) {
   )
   
  
-}
+}}
 
 
 ## knit together ui and server ----
