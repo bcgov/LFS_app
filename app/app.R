@@ -237,182 +237,58 @@ server <- function(input, output, session) {
   
   ## Tab 0: Highlights ----
   
+  ### Key indicators table ----
   output$key_indicators_table <- renderReactable({
     
-    table <- create_reactable(key_indicators_stats_fmtd)
+    table <- create_reactable(key_indicators)
     
   })
   
-  ### Valueboxes ----
-  # output$unemprate <- renderUI({
-  #   
-  #   data <- hl_stats %>%
-  #     filter(label == "Unemployment Rate")
-  #   
-  #   sign <- case_when(data$mom_change > 0 ~ paste("Up", abs(data$mom_change), "percentage points from last month", sep = " "),
-  #                     data$mom_change == 0 ~ "No change from last month",
-  #                     data$mom_change < 0 ~ paste("Down", abs(data$mom_change), "percentage points from last month", sep = " "))
-  #   
-  #   icon <- case_when(data$mom_change > 0 ~ "arrow-alt-circle-up",
-  #                     data$mom_change == 0 ~ "arrow-alt-circle-right",
-  #                     data$mom_change < 0 ~ "arrow-alt-circle-down")
-  #   
-  #   value_box(
-  #     title = data$label,
-  #     value = paste0(data$current, "%"),
-  #     showcase = icon(icon),
-  #     sign,
-  #     theme = value_box_theme(
-  #       bg = "#3c8dbc"  # similar to shinydashboard light-blue
-  #     )
-  #   )
-  # })
-  
-  # output$partrate <- renderUI({
-  #   
-  #   data <- hl_stats %>%
-  #     filter(label == "Participation Rate")
-  #   
-  #   sign <- case_when(data$mom_change > 0 ~ paste("Up", abs(data$mom_change), "percentage points from last month", sep = " "),
-  #                     data$mom_change == 0 ~ "No change from last month",
-  #                     data$mom_change < 0 ~ paste("Down", abs(data$mom_change), "percentage points from last month", sep = " "))
-  #   
-  #   icon <- case_when(data$mom_change > 0 ~ "arrow-alt-circle-up",
-  #                     data$mom_change == 0 ~ "arrow-alt-circle-right",
-  #                     data$mom_change < 0 ~ "arrow-alt-circle-down")
-  #   
-  #   value_box(
-  #     title = data$label,
-  #     value = paste0(data$current, "%"),
-  #     showcase = icon(icon),
-  #     sign,
-  #     theme = value_box_theme(
-  #       bg = "#3c8dbc"  # similar to shinydashboard light-blue
-  #     )
-  #   )
-  # })
-  
-  value_box_info <- function(indicator) {
-    
-    multiplier <- ifelse(str_detect(indicator, "Unemployment"), -1, 1)
-    
-    data <- hl_stats %>%
-      filter(label == indicator)
-    
-    data$icon <- case_when(
-      data$mom_change > 0 ~ "arrow-up",
-      data$mom_change == 0 ~ "minus",
-      data$mom_change < 0 ~ "arrow-down")
-    
-    data$color <- case_when(
-      multiplier * data$mom_change > 0 ~ " --icons-color-success",
-      multiplier * data$mom_change == 0 ~ "--icons-color-primary",
-      multiplier * data$mom_change < 0 ~ "--icons-color-danger")
-    
-    data$yoy_icon <- case_when(
-      data$yoy_change > 0 ~ "arrow-up",
-      data$yoy_change == 0 ~ "minus",
-      data$yoy_change < 0 ~ "arrow-down")
-    
-    data$yoy_color <- case_when(
-      multiplier * data$yoy_change > 0 ~ " --icons-color-success",
-      multiplier * data$yoy_change == 0 ~ "--icons-color-primary",
-      multiplier * data$yoy_change < 0 ~ "--icons-color-danger")
-    
-    data
-  }
-  
+  ### LFC KPI cards ----
+
   output$emp <- renderUI({
-    
-    data <- value_box_info("Employment")
-    
-    card(
-      card_header(h3(data$label), class = "lfs-card-header"),
-      card_body(
-        gap = 0,
-        h4(paste(prettyNum(data$current, big.mark = ","), "thousand")),
-        span(icon(data$icon, style = paste0("color: var(", data$color, ")")), 
-             data$mom_change, 
-             "thousand | ",
-             paste0(data$mom_pct_change, "%"),
-             "from last month"
-        ),
-        span(icon(data$yoy_icon, style = paste0("color: var(", data$yoy_color, ")")), 
-             data$yoy_change, 
-             "thousand | ",
-             paste0(data$yoy_pct_change, "%"),
-             "from last year"
-        ),
-        sparkline_plot("Employment")
-      )
-      
+    lf_value_box(
+      data_stat = lf_characteristics,
+      data_trend = cansim_data,
+      indicator = "Employment"
     )
   })
   
   output$unemprate <- renderUI({
-    data <- value_box_info("Unemployment Rate")
-    
-    card(
-      card_header(h3(data$label), class = "lfs-card-header"),
-      card_body(
-        gap = 0,
-        h4(paste0(data$current, "%")),
-        span(icon(data$icon, style = paste0("color: var(", data$color, ")")), 
-             data$mom_change, 
-             "p.p.",
-             "from last month"
-        ),
-        span(icon(data$yoy_icon, style = paste0("color: var(", data$yoy_color, ")")), 
-             data$yoy_change, 
-             "p.p.",
-             "from last year"
-        ),
-        sparkline_plot("Unemployment Rate")
-      )
+    lf_value_box(
+      data_stat = lf_characteristics,
+      data_trend = cansim_data,
+      indicator = "Unemployment rate",
+      rate = TRUE
     )
   })
   
   output$partrate <- renderUI({
-    data <- value_box_info("Participation Rate")
-    
-    card(
-      card_header(h3(data$label), class = "lfs-card-header"),
-      card_body(
-        gap = 0,
-        h4(paste0(data$current, "%")),
-        span(icon(data$icon, style = paste0("color: var(", data$color, ")")), 
-             data$mom_change, 
-             "p.p.",
-             "from last month"
-        ),
-        span(icon(data$yoy_icon, style = paste0("color: var(", data$yoy_color, ")")), 
-             data$yoy_change, 
-             "p.p.",
-             "from last year"
-        ),
-        sparkline_plot("Participation Rate")
-      )
+    lf_value_box(
+      data_stat = lf_characteristics,
+      data_trend = cansim_data,
+      indicator = "Participation rate",
+      rate = TRUE
     )
   })
   
   ### Flowchart ----
   output$flow <- renderGrViz({
     
-    data <- hl_stats %>%
-      filter(!str_detect(label, "Rate")) %>%
+    data <- lf_characteristics %>%
+      filter(!str_detect(label, "rate")) %>%
       select(label, current)
     
     data1 <<- data %>%
-      rbind(data.frame(label = "Not in \n Labour Force", 
+      rbind(data.frame(label = "Not in \n labour force", 
                        current = data %>% filter(label == "Population") %>% pull(current) - 
-                         data %>% filter(label == "Labour Force") %>% pull(current))) %>%
+                         data %>% filter(label == "Labour force") %>% pull(current))) %>%
       mutate(current = prettyNum(current, big.mark = ","))
     
-    data2 <<- hl_stats %>%
-      filter(str_detect(label, "Rate") & label != "Employment Rate") %>%
+    data2 <<- lf_characteristics %>%
+      filter(str_detect(label, "rate") & label != "Employment rate") %>%
       mutate(current = paste0(current, "%")) %>%
       select(label, current)
-    
     
     DiagrammeR::grViz("www/diagrammerFlow.gv")
 
@@ -558,7 +434,7 @@ server <- function(input, output, session) {
            caption = "Unadjusted\n3 Month Moving Average") +
       scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
       scale_color_manual(values = c("white" = "white", "black" = "black"))+
-      guides(color = FALSE) +
+      guides(color = "none") +
       theme_minimal() +
       theme(
         text = element_text(size = 16, family = "BCSans"),
@@ -633,7 +509,7 @@ server <- function(input, output, session) {
   
   ## Update selectInput to summary when Data tables tab is selected
   observe({
-    req(input$tab)
+    req(input$tabs)
     
     if(input$tabs == "Data tables") {
       updateSelectInput(session, inputId = "select_data_table", selected = "summary")
