@@ -85,7 +85,7 @@ ui <- function(req) {
                        h3("Key indicators"),
                        div(
                          style = "max-width:1200px",
-                         reactableOutput("key_indicators_table")
+                         withSpinner(reactableOutput("key_indicators_table"))
                          ),
                        
                        h3("Labour force characteristics", class = "mt-4 mb-3"),

@@ -36,6 +36,7 @@ library(rmapshaper) ## for maps
 library(viridis) ## for maps
 library(markdown)
 library(reactable)
+library(shinycssloaders) ## for spinners
 
 options(scipen = 9999)  ## so chart axes read properly
 options(spinner.type = 3,
