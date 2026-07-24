@@ -92,10 +92,14 @@ ui <- function(req) {
                        h3("Labour force characteristics", class = "mt-4 mb-3"),
                        layout_column_wrap(
                          width = "350px",
-                         grVizOutput("flow", height = 300),
+                         withSpinner(grVizOutput("flow", height = 300)),
+                         uiOutput("pop"),
+                         uiOutput("lf"),
                          uiOutput("emp"),
+                         uiOutput("unemp"),
                          uiOutput("unemprate"),
-                         uiOutput("partrate")
+                         uiOutput("partrate"),
+                         uiOutput("emprate")
                        )
                        
                        
@@ -245,12 +249,36 @@ server <- function(input, output, session) {
   })
   
   ### LFC KPI cards ----
+  
+  output$pop <- renderUI({
+    lf_value_box(
+      data_stat = lf_characteristics,
+      data_trend = cansim_data,
+      indicator = "Population"
+    )
+  })
+  
+  output$lf <- renderUI({
+    lf_value_box(
+      data_stat = lf_characteristics,
+      data_trend = cansim_data,
+      indicator = "Labour force"
+    )
+  })
 
   output$emp <- renderUI({
     lf_value_box(
       data_stat = lf_characteristics,
       data_trend = cansim_data,
       indicator = "Employment"
+    )
+  })
+  
+  output$unemp <- renderUI({
+    lf_value_box(
+      data_stat = lf_characteristics,
+      data_trend = cansim_data,
+      indicator = "Unemployment"
     )
   })
   
@@ -268,6 +296,15 @@ server <- function(input, output, session) {
       data_stat = lf_characteristics,
       data_trend = cansim_data,
       indicator = "Participation rate",
+      rate = TRUE
+    )
+  })
+  
+  output$emprate <- renderUI({
+    lf_value_box(
+      data_stat = lf_characteristics,
+      data_trend = cansim_data,
+      indicator = "Employment rate",
       rate = TRUE
     )
   })

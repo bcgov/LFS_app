@@ -83,7 +83,11 @@ lf_value_box <- function(data_stat, data_trend, indicator, rate = FALSE) {
   
   data_stat <- data_stat %>% filter(label == indicator)
   data_trend <- data_trend %>% filter(label == indicator)
-  
+  accuracy <- ifelse(
+    indicator %in% c("Population", "Labour force"),
+    0.01,
+    0.1
+  )
   
   card(
     card_header(h3(data_stat$label), class = "lfs-card-header"),
@@ -92,19 +96,19 @@ lf_value_box <- function(data_stat, data_trend, indicator, rate = FALSE) {
       h4(paste0(prettyNum(data_stat$current, big.mark = ","), ifelse(rate, "%", " thousand"))),
       span(icon(data_stat$mom_arrow, style = paste0("color:", data_stat$mom_color)), 
            prettyNum(data_stat$mom_change, big.mark = ","), 
-           ifelse(rate, "ppt", "thousand"),
-           if(!rate) { paste0(" | ",data_stat$mom_pct_change, "%") },
+           ifelse(rate, "ppt", ""),
+           if(!rate) { paste0(" | ", percent(data_stat$mom_pct_change, accuracy = accuracy, f = janitor::round_half_up)) },
            "from last month"),
       span(icon(data_stat$yoy_arrow, style = paste0("color:", data_stat$yoy_color)), 
            prettyNum(data_stat$yoy_change, big.mark = ","),  
-           ifelse(rate, "ppt", "thousand"),
-           if(!rate) { paste0(" | ", data_stat$yoy_pct_change, "%") },
+           ifelse(rate, "ppt", ""),
+           if(!rate) { paste0(" | ", percent(data_stat$yoy_pct_change, accuracy = accuracy, f = janitor::round_half_up)) },
            "from last year"),
       sparkline_plot(data_trend, indicator)
     )
   )
 }
-
+#percent(value, accuracy = 0.1, f = janitor::round_half_up)
 
 
 ## Functions for data tables ----
@@ -610,7 +614,7 @@ create_reactable <- function(data) {
           } else {
             max_value <- data$bar_max_pct[index]
             
-            label = percent(value/100, accuracy = 0.1)
+            label = percent(value, accuracy = 0.1, f = janitor::round_half_up)
             
             bar_chart_pos_neg(label, value, max_value = max_value)
           }

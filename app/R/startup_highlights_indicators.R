@@ -108,10 +108,10 @@ indicator_stats <- cansim_data %>%
     yoy_change = round_half_up(current - previous_year, digits = 2) * (1 + 999 * (group == 1)),
     mom_pct_change = case_when(
       str_detect(label, "rate") ~ NA,
-      TRUE ~ round_half_up(100 * (current - previous_month)/ previous_month, digits = 1)),
+      TRUE ~ (current - previous_month)/ previous_month), ## format on output
     yoy_pct_change = case_when(
       str_detect(label, "rate") ~ NA,
-      TRUE ~ round_half_up(100 * (current - previous_year)/ previous_year, digits = 1))
+      TRUE ~ (current - previous_year)/ previous_year)
   )
 
 # Assign arrows and colours ----
