@@ -71,23 +71,24 @@ ui <- function(req) {
                        "Highlights",
                        h2(formatted_date, class = "mt-4 mb-3"),
                        h3("Overview"),
-                       layout_column_wrap(
-                         width = 1/2,
-                         p("Statistics Canada's monthly Labour Force Survey (LFS) captures data
-                      about the labour market and provides estimates of 
-                      employment and unemployment which are the most 
-                      timely and important measures of performance of the Canadian economy. 
-                      Navigate the tabs to find statistics that reflect the 
-                      labour market characteristics of the population of B.C.",
-                           tags$a("Learn more about the Labour Force Survey", 
-                                  href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey"))
+                       p("Updated", strong("monthly"), "following the release of 
+                         Statistics Canada's Labour Force Survey (LFS) 
+                         this dashboard provides an", strong("up-to-date view of labour market conditions
+                         in British Columbia.")),
+                       p("Use this dashboard to:"),
+                       tags$ul(
+                         tags$li(strong("Explore key indicators and trends"), "related to employment, unemployment, labour force participation, and workforce characteristics"),
+                         tags$li(strong("Track changes over time and compare labour market outcomes"), "across age groups, genders and regions"),
+                         tags$li(strong("Access insights"), " that support research, policy development, workforce planning, and evidence-based decision-making")
                        ),
+                       p("For additional information about the Labour Force Survey
+                           and other labour market statistics, visit the
+                           Province of British Columbia's",
+                         tags$a("Labour Market Statistics",
+                                href = "https://www2.gov.bc.ca/gov/content/data/statistics/economy/labour-market-statistics"),
+                         "webpage."),
                        h3("Key indicators"),
-                       div(
-                         style = "max-width:1200px",
-                         withSpinner(reactableOutput("key_indicators_table"))
-                         ),
-                       
+                       withSpinner(reactableOutput("key_indicators_table")),
                        h3("Labour force characteristics", class = "mt-4 mb-3"),
                        layout_column_wrap(
                          width = "350px",
