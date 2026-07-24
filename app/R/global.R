@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+## install dev version of bcsapps for modern header/footer
+#pak::pkg_install("bcgov/bcsapps@development")
 
 ## load libraries ----
 library(tidyverse)      ## includes: dplyr, ggplot2, tibble, readr, tidyr, purrr, stringr, forcats
@@ -52,38 +54,6 @@ economic_regions <- qs::qread("economic_regions.qs")
 cmas <- qs::qread("cmas.qs")
 bc <- qs::qread("bc.qs")
 
-## Load starting data ----
-hl_stats_meta <- data.frame(
-  label = c("Population", "Labour Force", 
-            "Employment", "Unemployment", 
-            "Employment Rate", "Unemployment Rate", 
-            "Participation Rate"),
-  vector = c("v2064699", "v2064700", "v2064701", 
-             "v2064704", "v2064707", "v2064705", "v2064706")
-)
-
-hl_data <- left_join(
-  hl_stats_meta,
-  get_cansim_vector_for_latest_periods(
-    vectors = hl_stats_meta$vector,
-    periods = 13) %>%
-    clean_names(),
-  by = "vector"  )
-  
-
-hl_stats <- hl_data %>%
-  mutate(ref_date = ymd(ref_date),
-         date = case_when(ref_date == max(ref_date) ~ "current",
-                          ref_date == max(ref_date) - months(1) ~ "previous_month",
-                          ref_date == max(ref_date) - years(1) ~ "previous_year")) %>%
-  select(label, date, value) %>%
-  filter(!is.na(date)) %>%
-  pivot_wider(names_from = date, values_from = value) %>%
-  mutate(mom_change = round_half_up(current - previous_month, digits = 1),
-         mom_pct_change = round_half_up(100 * (current - previous_month)/ previous_month, digits = 1),
-         yoy_change = round_half_up(current - previous_year, digits = 1),
-         yoy_pct_change = round_half_up(100 * (current - previous_year)/ previous_year, digits = 1))
-
 ### Date References ----
 
 ## Summary requires curr_date, prev_month and prev_year
@@ -97,7 +67,7 @@ hl_stats <- hl_data %>%
 ## YTD calculations require prev_year_jan to prev_year and curr_year_jan to curr_date
 
 ## curr_date = latest Labour Force date
-curr_date <- max(hl_data$date)
+curr_date <- get_cansim_vector_for_latest_periods(vectors = "v2064700", periods = 1) %>% pull(Date) %>% max()
 prev_month <- curr_date - months(1)
 prev_year <- curr_date - years(1)
 prev_year_jan <- paste0(year(curr_date - years(1)),"-01-01") %>% ymd()
@@ -108,8 +78,9 @@ annual_display_year <- paste0(year(curr_date - years(10)), "01-01") %>% ymd()
 
 formatted_date <- paste(month(curr_date, label = TRUE, abbr = FALSE), year(curr_date))
 
-## Table Details for App ----
 
+
+## Table Details for App ----
 dt_details <- tibble::tribble(
                         ~table_id,                                                               ~table_name,                                             ~grouping, ~include_avg_pct_chg, ~include_pct_chg, ~include_diff,
                         "summary",                                   "B.C. and Canada Labour Market Changes",                                                    NA,                   NA,               NA,            NA,
@@ -128,7 +99,6 @@ dt_details <- tibble::tribble(
                             "cma",       "B.C. Employment and Unemployment Rate by Census Metropolitan Area",                                               "label",                   NA,            FALSE,         FALSE,
                             "cow",                                      "B.C. Employment by Class of Worker",                                     "class_of_worker",                 TRUE,             TRUE,         FALSE
                 )
-
   
   
 choices_list <- as.list(dt_details$table_id)

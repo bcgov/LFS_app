@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Highlights key indicators ----
+# Define indicators ----
 
-## Define the label/vectors to include in the highlights table ----
+## groups defined as:
+## 1 - units = thousands,
+## 2 - units = %/ppts,
+## 3 - units = $
+
+## Key indicators ----
 key_indicators_vectors <- tribble(
   ~group, ~label, ~vector,
   # Table 14-10-0287-01: Labour force characteristics by sex and age group, annual
@@ -44,7 +49,26 @@ key_indicators_vectors <- tribble(
   3, "Average hourly wages", "v2166779" # Total average hourly earnings
 )
 
-## Download the latest data from cansim ----
+## Labour force characteristics ----
+lf_characteristics_vectors <- tribble(
+  ~group, ~label, ~vector,
+  1, "Population", "v2064699",
+  1, "Labour force", "v2064700",
+  1, "Employment", "v2064701",
+  1, "Unemployment", "v2064704",
+  2, "Employment rate", "v2064707",
+  2, "Unemployment rate", "v2064705",
+  2, "Participation rate", "v2064706"
+)
+
+## Combine ----
+vector_list <- bind_rows(
+  key_indicators_vectors,
+  lf_characteristics_vectors
+) %>%
+  distinct()
+
+# Download the latest data from cansim ----
 
 ## if error connecting to cansim, app will display a "temporarily unavailable" message instead of crashing
 cansim_error <<- FALSE
@@ -53,9 +77,9 @@ cansim_data <- tryCatch(
     ## Download the data
    ## (13 periods = 12 months + 1)
     left_join(
-      key_indicators_vectors,
+      vector_list,
       get_cansim_vector_for_latest_periods(
-        vectors = key_indicators_vectors$vector,
+        vectors = vector_list$vector,
         periods = 13) %>%
         clean_names(),
       by = "vector"
@@ -69,55 +93,90 @@ cansim_data <- tryCatch(
 
 if(!cansim_error) {
 
-## Calculate stats ----
-key_indicators_stats <- cansim_data %>%
+# Calculate stats ----
+indicator_stats <- cansim_data %>%
   mutate(ref_date = ymd(ref_date),
          date = case_when(ref_date == max(ref_date) ~ "current",
                           ref_date == max(ref_date) - months(1) ~ "previous_month",
                           ref_date == max(ref_date) - years(1) ~ "previous_year")) %>%
-  select(group, label, date, value) %>%
+  select(vector, group, label, date, value) %>%
   filter(!is.na(date)) %>%
   pivot_wider(names_from = date, values_from = value) %>%
   ## multiply values by 1 or 1000 (if in group 1)
   mutate(
     mom_change = round_half_up(current - previous_month, digits = 2) * (1 + 999 * (group == 1)),
     yoy_change = round_half_up(current - previous_year, digits = 2) * (1 + 999 * (group == 1)),
+    mom_pct_change = case_when(
+      str_detect(label, "rate") ~ NA,
+      TRUE ~ round_half_up(100 * (current - previous_month)/ previous_month, digits = 1)),
     yoy_pct_change = case_when(
       str_detect(label, "rate") ~ NA,
       TRUE ~ round_half_up(100 * (current - previous_year)/ previous_year, digits = 1))
-  ) %>%
-  ## max values for bar chart proportioning
-  mutate(
-    mom_max = max(abs(mom_change)),
-    yoy_max = max(abs(yoy_change)),
-    .by = group
-  ) %>%
-  mutate(yoy_pct_max = max(abs(yoy_pct_change), na.rm = TRUE))
+  )
 
-## Format values and assign arrows and colours ----
-key_indicators_stats_fmtd <- key_indicators_stats %>%
+# Assign arrows and colours ----
+indicator_stats_fmtd <- indicator_stats %>%
   mutate(
-    arrow = case_when(
+    mom_arrow = case_when(
       mom_change > 0 ~ "up-long",
       mom_change == 0 ~ "minus",
       mom_change < 0 ~ "down-long"
     ),
+    yoy_arrow = case_when(
+      yoy_change > 0 ~ "up-long",
+      yoy_change == 0 ~ "minus",
+      yoy_change < 0 ~ "down-long"
+    ),
     
     ## multiply values by 1 or -1 (if Unemployment rate)
-    color = case_when(
+    mom_color = case_when(
       (1 - 2 * (label == "Unemployment rate")) * mom_change > 0 ~ "#00B050",
       (1 - 2 * (label == "Unemployment rate")) * mom_change < 0 ~ "#C00000",
       TRUE ~ "#1d1d1d"
     ),
-    
+    yoy_color = case_when(
+      (1 - 2 * (label == "Unemployment rate")) * yoy_change > 0 ~ "#00B050",
+      (1 - 2 * (label == "Unemployment rate")) * yoy_change < 0 ~ "#C00000",
+      TRUE ~ "#1d1d1d"
+    )
+  )
+
+# Separate vectors and additional formatting ----
+
+## KI specific formatting ----
+## filter only key indicator vectors
+key_indicators <- semi_join(
+  indicator_stats_fmtd,
+  key_indicators_vectors,
+  by = "vector"
+) %>%
+  mutate(label = factor(label, levels = key_indicators_vectors$label)) %>%
+  arrange(label) %>%
+  mutate(
     label = case_when(
       group == 1 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:10px'>", prettyNum(current, big.mark = ","), " thousand</span>"),
       group == 2 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>", current, " per cent</span>"),
       group == 3 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>$", current, "/hr</span>")
     ),
-    
     label_order = row_number()
+  ) %>% 
+  ## max values for bar chart proportioning
+  mutate(
+    bar_max_chg = max(abs(mom_change), abs(yoy_change)),
+    .by = group
   ) %>%
-  select(group, label_order, label, arrow, color, starts_with("mom"), starts_with("yoy"))
-}
+  mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
+  select(group, label_order, label, arrow = mom_arrow, color = mom_color, mom_change, 
+         starts_with("yoy"), starts_with("bar_max"))
 
+
+## LF specific formatting ----
+lf_characteristics <- semi_join(
+  indicator_stats_fmtd,
+  lf_characteristics_vectors,
+  by = "vector"
+) %>%
+  mutate(label = factor(label, levels = lf_characteristics_vectors$label)) %>%
+  arrange(label)
+
+}
