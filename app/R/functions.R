@@ -15,9 +15,9 @@
 
 ## Functions for valueboxes ----
 ## code from: https://rstudio.github.io/bslib/reference/value_box.html#bottom-showcase
-sparkline_plot_prep <- function(indicator) {
+sparkline_plot_prep <- function(data, indicator) {
   
-  df <- hl_data %>%
+  df <- data %>%
     filter(label == indicator)
   
   timeseries <- df$value
@@ -64,10 +64,10 @@ sparkline_plot_prep <- function(indicator) {
   
 }
 
-sparkline_plot <- function(indicator) {
+sparkline_plot <- function(data, indicator) {
   as_fill_item(
     htmltools::plotTag(
-      sparkline_plot_prep(indicator),
+      sparkline_plot_prep(data, indicator),
       width = 500,
       height = 125,
       suppressSize = "xy",
@@ -75,6 +75,32 @@ sparkline_plot <- function(indicator) {
         "Sparkline showing monthly trend for employment.",
         "Current month, previous month, and year-ago values are highlighted."
       )
+    )
+  )
+}
+
+lf_value_box <- function(data_stat, data_trend, indicator, rate = FALSE) {
+  
+  data_stat <- data_stat %>% filter(label == indicator)
+  data_trend <- data_trend %>% filter(label == indicator)
+  
+  
+  card(
+    card_header(h3(data_stat$label), class = "lfs-card-header"),
+    card_body(
+      gap = 0,
+      h4(paste0(prettyNum(data_stat$current, big.mark = ","), ifelse(rate, "%", " thousand"))),
+      span(icon(data_stat$mom_arrow, style = paste0("color:", data_stat$mom_color)), 
+           prettyNum(data_stat$mom_change, big.mark = ","), 
+           ifelse(rate, "ppt", "thousand"),
+           if(!rate) { paste0(" | ",data_stat$mom_pct_change, "%") },
+           "from last month"),
+      span(icon(data_stat$yoy_arrow, style = paste0("color:", data_stat$yoy_color)), 
+           prettyNum(data_stat$yoy_change, big.mark = ","),  
+           ifelse(rate, "ppt", "thousand"),
+           if(!rate) { paste0(" | ", data_stat$yoy_pct_change, "%") },
+           "from last year"),
+      sparkline_plot(data_trend, indicator)
     )
   )
 }
@@ -503,6 +529,7 @@ create_reactable <- function(data) {
         align = "center",
         sortable = FALSE,
         minWidth = 70,
+        maxWidth = 70,
         cell = function(value, index) {
           
           colour <- data$color[index]
@@ -535,7 +562,7 @@ create_reactable <- function(data) {
         style = list(alignItems = "center"),
         cell = function(value, index){
           unit_group <- data$group[index]
-          max_value <- data$mom_max[index]
+          max_value <- data$bar_max_chg[index]
           
           
           label = switch(
@@ -558,7 +585,7 @@ create_reactable <- function(data) {
         style = list(alignItems = "center"),
         cell = function(value, index){
           unit_group <- data$group[index]
-          max_value <- data$yoy_max[index]
+          max_value <- data$bar_max_chg[index]
           
           label = switch(
             unit_group,
@@ -581,7 +608,7 @@ create_reactable <- function(data) {
           if(is.na(value)) {
             ""
           } else {
-            max_value <- data$yoy_pct_max[index]
+            max_value <- data$bar_max_pct[index]
             
             label = percent(value/100, accuracy = 0.1)
             
