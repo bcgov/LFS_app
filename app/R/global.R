@@ -61,13 +61,16 @@ hl_stats_meta <- data.frame(
              "v2064704", "v2064707", "v2064705", "v2064706")
 )
 
-hl_data <- get_cansim_vector_for_latest_periods(
-  vectors = hl_stats_meta$vector,
-  periods = 13) %>%
-  clean_names() 
+hl_data <- left_join(
+  hl_stats_meta,
+  get_cansim_vector_for_latest_periods(
+    vectors = hl_stats_meta$vector,
+    periods = 13) %>%
+    clean_names(),
+  by = "vector"  )
+  
 
 hl_stats <- hl_data %>%
-  left_join(hl_stats_meta, by = "vector") %>%
   mutate(ref_date = ymd(ref_date),
          date = case_when(ref_date == max(ref_date) ~ "current",
                           ref_date == max(ref_date) - months(1) ~ "previous_month",

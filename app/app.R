@@ -83,17 +83,15 @@ ui <- function(req) {
                                   href = "https://www2.gov.bc.ca/gov/content/data/statistics/employment-labour/about-labour-force-survey"))
                        ),
                        h3("Key indicators"),
-                       layout_columns(
-                         col_widths = bslib::breakpoints(
-                           xs = c(12, 12),
-                           xxl = c(9, 3)
+                       div(
+                         style = "max-width:1200px",
+                         reactableOutput("key_indicators_table")
                          ),
-                         reactableOutput("key_indicators_table"),
-                         grVizOutput("flow", height = 300)
-                       ),
                        
+                       h3("Labour force characteristics", class = "mt-4 mb-3"),
                        layout_column_wrap(
                          width = "350px",
+                         grVizOutput("flow", height = 300),
                          uiOutput("emp"),
                          uiOutput("unemprate"),
                          uiOutput("partrate")
@@ -343,7 +341,8 @@ server <- function(input, output, session) {
              "thousand | ",
              paste0(data$yoy_pct_change, "%"),
              "from last year"
-        )
+        ),
+        sparkline_plot("Employment")
       )
       
     )
@@ -366,7 +365,8 @@ server <- function(input, output, session) {
              data$yoy_change, 
              "p.p.",
              "from last year"
-        )
+        ),
+        sparkline_plot("Unemployment Rate")
       )
     )
   })
@@ -388,7 +388,8 @@ server <- function(input, output, session) {
              data$yoy_change, 
              "p.p.",
              "from last year"
-        )
+        ),
+        sparkline_plot("Participation Rate")
       )
     )
   })

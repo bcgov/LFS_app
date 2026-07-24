@@ -13,8 +13,75 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+## Functions for valueboxes ----
+## code from: https://rstudio.github.io/bslib/reference/value_box.html#bottom-showcase
+sparkline_plot_prep <- function(indicator) {
+  
+  df <- hl_data %>%
+    filter(label == indicator)
+  
+  timeseries <- df$value
+  x_axis <- seq_along(timeseries)
+  x_lim <- c(0.8, length(timeseries) + 0.2)
+  y_offset <- case_when(
+    max(timeseries) < 100 ~ 0.1,
+    between(max(timeseries), 100, 1000) ~ 1,
+    TRUE ~ 3)
+  y_lim <- range(timeseries) + c(-1*y_offset, y_offset)
+  pts <- c(1, 12, 13) # previous year, previous month, current
+  
+  par(mar = c(0, 0, 0, 0))
+  
+  # Set up the plot area
+  plot(
+    timeseries, type = "n",
+    axes = FALSE, frame.plot = FALSE,
+    ylim = y_lim, xlim = x_lim,
+    ylab = "",    xlab = "",
+    yaxs = "i",   xaxs = "i",
+  )
+  
+  # Add the sparkline line
+  lines(timeseries, type = "l", pch = NA, col = "#3c8dbc", lwd = 3)
+  
+  # Create polygon coordinates for shading
+  polygon_x <- c(1, x_axis, length(timeseries))
+  polygon_y <- c(min(y_lim), timeseries, min(y_lim))
+  
+  # Add shading under the line
+  polygon(polygon_x, polygon_y, col = "#e6f2fd", border = NA)
+  
+  # Add highlighted points
+  points(
+    x_axis[pts],
+    timeseries[pts],
+    pch = 21,
+    bg = "white",
+    col = "#3c8dbc",
+    lwd = 1.5,
+    cex = 2
+  )
+  
+}
+
+sparkline_plot <- function(indicator) {
+  as_fill_item(
+    htmltools::plotTag(
+      sparkline_plot_prep(indicator),
+      width = 500,
+      height = 125,
+      suppressSize = "xy",
+      alt = paste(
+        "Sparkline showing monthly trend for employment.",
+        "Current month, previous month, and year-ago values are highlighted."
+      )
+    )
+  )
+}
 
 
+
+## Functions for data tables ----
 ## code for renaming, may need later:
 # rename_at(vars(ends_with("_pct_chg")), ~ str_remove_all(., "_pct_chg"))
 
@@ -353,7 +420,7 @@ print_summary_table <- function(data, zero_data_note) {
 #   select(-data_type)
 
 
-
+## Functions for key indicators table ----
 ## Render a bar chart with positive and negative values
 ## code from https://glin.github.io/reactable/articles/cookbook/cookbook.html?q=image#bar-charts
 bar_chart_pos_neg <- function(label, value, max_value = 1, height = "1.5rem",
