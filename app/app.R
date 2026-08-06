@@ -101,7 +101,8 @@ ui <- function(req) {
                          uiOutput("unemprate"),
                          uiOutput("partrate"),
                          uiOutput("emprate")
-                       )
+                       ),
+                       withSpinner(reactableOutput("lf_characteristics_table"))
                        
                        
                      ),
@@ -271,6 +272,13 @@ server <- function(input, output, session) {
     )
   })
   
+  ### LFC table ----
+  output$lf_characteristics_table <- renderReactable({
+    
+    table <- create_reactable(lf_characteristics, ref_date = formatted_date, pos_fill = "#1F497D", neg_fill = "#D4D4D4")
+    
+  })
+  
   output$lf <- renderUI({
     lf_value_box(
       data_stat = lf_characteristics,
@@ -325,15 +333,11 @@ server <- function(input, output, session) {
   ### Flowchart ----
   output$flow <- renderGrViz({
     
-    data <- lf_characteristics %>%
+    data1 <<- lf_characteristics %>%
       filter(!str_detect(label, "rate")) %>%
-      select(label, current)
-    
-    data1 <<- data %>%
-      rbind(data.frame(label = "Not in \n labour force", 
-                       current = data %>% filter(label == "Population") %>% pull(current) - 
-                         data %>% filter(label == "Labour force") %>% pull(current))) %>%
-      mutate(current = prettyNum(current, big.mark = ","))
+      filter(!str_detect(label, "time")) %>% ## remove full-time/part-time from table
+      select(label, current) %>%
+      mutate(current = prettyNum(1000 * current, big.mark = ","))
     
     data2 <<- lf_characteristics %>%
       filter(str_detect(label, "rate") & label != "Employment rate") %>%

@@ -55,9 +55,12 @@ lf_characteristics_vectors <- tribble(
   1, "Population", "v2064699",
   1, "Labour force", "v2064700",
   1, "Employment", "v2064701",
+  1, "Full-time employment", "v2064702",
+  1, "Part-time employment", "v2064703",
   1, "Unemployment", "v2064704",
-  2, "Employment rate", "v2064707",
+  1, "Not in labour force", "1",  ## this is a calculated value, use a fake vector number
   2, "Unemployment rate", "v2064705",
+  2, "Employment rate", "v2064707",
   2, "Participation rate", "v2064706"
 )
 
@@ -92,9 +95,21 @@ cansim_data <- tryCatch(
 )
 
 if(!cansim_error) {
+  
+  # Create Not in labour force
+  not_in_lf <- cansim_data %>% 
+    filter(label %in% c("Population", "Labour force")) %>%
+    select(label, ref_date, value) %>%
+    pivot_wider(names_from = label, values_from = value) %>%
+    mutate(value = Population - `Labour force`,
+           label = "Not in labour force") %>%
+    select(label, ref_date, value) %>%
+    left_join(lf_characteristics_vectors, by = "label")
 
 # Calculate stats ----
-indicator_stats <- cansim_data %>%
+indicator_stats <- bind_rows(
+  cansim_data %>% filter(label != "Not in labour force"),
+  not_in_lf) %>%
   mutate(ref_date = ymd(ref_date),
          date = case_when(ref_date == max(ref_date) ~ "current",
                           ref_date == max(ref_date) - months(1) ~ "previous_month",
@@ -176,7 +191,21 @@ lf_characteristics <- semi_join(
   lf_characteristics_vectors,
   by = "vector"
 ) %>%
+  ## label factor order
   mutate(label = factor(label, levels = lf_characteristics_vectors$label)) %>%
-  arrange(label)
+  arrange(label) %>%
+  mutate(label_order = row_number()) %>%
+  ## max values for bar chart proportioning
+  mutate(
+    bar_max_est = max(current),
+    bar_max_chg = max(abs(mom_change), abs(yoy_change)),
+    .by = group
+  ) %>%
+  mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
+  arrange(label) %>%
+  select(group, label_order, label, everything())
 
 }
+
+
+

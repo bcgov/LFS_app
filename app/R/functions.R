@@ -450,7 +450,81 @@ print_summary_table <- function(data, zero_data_note) {
 #   select(-data_type)
 
 
-## Functions for key indicators table ----
+## Functions for highlights tab tables ----
+
+# Render a bar chart with a label on the inside (if beyond label_threshold) or on left
+## code from https://glin.github.io/reactable/articles/cookbook/cookbook.html?q=image#bar-charts
+bar_chart <- function(label, value, max_value = 1,
+                      height = "1.5rem",
+                      fill = "#4F81BD",
+                      background = NULL,
+                      label_threshold = 0.80) {
+  
+  width <- value / max_value
+  width_pct <- paste0(width * 100, "%")
+  
+  # Put label inside the bar if it is wide enough
+  label_inside <- width >= label_threshold
+  
+  bar <- div(
+    style = list(
+      background = fill,
+      width = width_pct,
+      height = height
+    )
+  )
+  
+  label_div <- div(
+    label,
+    style = list(
+      position = "absolute",
+      left = if (label_inside) width_pct else paste0(width * 100 + 5, "%"),
+      transform = if (label_inside) "translateX(-100%)" else NULL,
+      paddingRight = if (label_inside) "0.25rem" else NULL,
+      color = if (label_inside) "white" else "inherit",
+      whiteSpace = "nowrap"
+    )
+  )
+  
+  div(
+    style = list(
+      position = "relative",
+      width = "100%",
+      minHeight = "2.25rem",
+      display = "flex",
+      alignItems = "center",
+      background = background
+    ),
+    
+    # Zero/reference line
+    div(
+      style = list(
+        position = "absolute",
+        left = "0%",
+        top = 0,
+        bottom = 0,
+        marginLeft = "0.5rem",
+        width = "1px",
+        height = "2.25rem",
+        background = "#bdbdbd"
+      )
+    ),
+    
+    # Bar
+    div(
+      style = list(
+        marginLeft = "0.5rem",
+        height = height,
+        width = width_pct,
+        background = fill
+      )
+    ),
+    
+    # Label
+    label_div
+  )
+}
+
 ## Render a bar chart with positive and negative values
 ## code from https://glin.github.io/reactable/articles/cookbook/cookbook.html?q=image#bar-charts
 bar_chart_pos_neg <- function(label, value, max_value = 1, height = "1.5rem",
@@ -478,26 +552,166 @@ bar_chart_pos_neg <- function(label, value, max_value = 1, height = "1.5rem",
                    position = "relative",
                    width = "100%",
                    minHeight = "2.25rem",
-                   alignItems = "center"
-  ),
-  
-  div(
-    style = list(
-      position = "absolute",
-      left = "50%",
-      top = 0,
-      bottom = 0,
-      width = "1px",
-      height = "2.25rem",
-      background = "#bdbdbd"
+                   alignItems = "center"),
+      div(
+        style = list(
+          position = "absolute",
+          left = "50%",    
+          top = 0,
+          bottom = 0,
+          width = "1px",
+          height = "2.25rem",
+          background = "#bdbdbd")),
+      
+      neg_chart,
+      pos_chart
     )
-  ),
-  
-  neg_chart, pos_chart)
 }
 
-create_reactable <- function(data) {
+create_reactable <- function(data, ref_date = NULL, pos_fill = "#4F81BD", neg_fill = "#C00000") {
   
+  ## define default columns
+  columns <- list(
+    
+    label_order = colDef(
+      sticky = "left",
+      show = TRUE,
+      name = "",
+      align = "left",
+      minWidth = 160,
+      # minWidth = 230,
+      style = list(overflowWrap = "break-word",
+                   alignItems = "center"),
+      cell = function(value, index) {
+        data$label[index]
+      }
+    ),
+    
+    mom_change = colDef(
+      show = TRUE,
+      name = "Change from<br>previous month",
+      style = list(alignItems = "center"),
+      cell = function(value, index){
+        unit_group <- data$group[index]
+        max_value <- data$bar_max_chg[index]
+        
+        
+        label = switch(
+          unit_group,
+          "1" = comma(value),
+          "2" = paste0(value, "ppt"),
+          "3" = dollar(value)
+        )
+        
+        bar_chart_pos_neg(label, value, max_value = max_value, pos_fill = pos_fill, neg_fill = neg_fill)
+      },
+      align = "center",
+      minWidth = 200
+      
+    ),
+    
+    yoy_change = colDef(
+      show = TRUE,
+      name = "Change from<br>previous year",
+      style = list(alignItems = "center"),
+      cell = function(value, index){
+        unit_group <- data$group[index]
+        max_value <- data$bar_max_chg[index]
+        
+        label = switch(
+          unit_group,
+          "1" = comma(value),
+          "2" = paste0(value, "ppt"),
+          "3" = dollar(value)
+        )
+        
+        bar_chart_pos_neg(label, value, max_value = max_value, pos_fill = pos_fill, neg_fill = neg_fill)
+      },
+      align = "center",
+      minWidth = 200
+    ),
+    
+    yoy_pct_change = colDef(
+      show = TRUE,
+      name = "Change from<br>previous year (%)",
+      style = list(alignItems = "center"),
+      cell = function(value, index){
+        if(is.na(value)) {
+          ""
+        } else {
+          max_value <- data$bar_max_pct[index]
+          
+          label = percent(value, accuracy = 0.1, f = janitor::round_half_up)
+          
+          bar_chart_pos_neg(label, value, max_value = max_value, pos_fill = pos_fill, neg_fill = neg_fill)
+        }
+      },
+      align = "center",
+      minWidth = 200
+    )
+    
+  )
+  
+  ## define column "arrow" for key indicator table
+  if("arrow" %in% names(data)) {
+    columns$arrow = colDef(
+      show = TRUE,
+      name = "",
+      align = "center",
+      sortable = FALSE,
+      minWidth = 70,
+      maxWidth = 70,
+      cell = function(value, index) {
+        
+        colour <- data$color[index]
+        
+        tags$span(
+          style = paste0(
+            "background-color:", colour, "18;", # add opacity hex
+            "border-radius:15%;",
+            "width:100%;",
+            "height:100%;",
+            "display:inline-flex;",
+            "align-items:center;",
+            "justify-content:center;",
+            "padding:0px"
+          ),
+          icon(
+            name = value,
+            class = "fa-xl",
+            style = paste0(
+              "color:", colour, ";"
+            )
+          )
+        )
+      }
+    )
+  }
+  
+  ## define column "current" for lf characteristics table
+  if("current" %in% names(data)){
+    columns$current = colDef(
+      show = TRUE,
+      name = ifelse(!is.null(ref_date), paste(ref_date, "estimate"), "Monthly estimate"),
+      style = list(alignItems = "center"),
+      cell = function(value, index){
+        unit_group <- data$group[index]
+        max_value <- data$bar_max_est[index]
+        
+        label = switch(
+          unit_group,
+          "1" = comma(1000*value),
+          "2" = percent(value/100, accuracy = 0.1)
+        )
+        
+        bar_chart(label, value, max_value = max_value, fill = pos_fill)
+      },
+      align = "left",
+      minWidth = 240
+    )
+  }
+  
+  ## create table
   reactable(
     data,
     bordered = FALSE,
@@ -512,117 +726,6 @@ create_reactable <- function(data) {
       html = TRUE,
       align = "right"
     ),
-    columns = list(
-      
-      label_order = colDef(
-        sticky = "left",
-        show = TRUE,
-        name = "",
-        align = "left",
-        minWidth = 160,
-        # minWidth = 230,
-        style = list(overflowWrap = "break-word"),
-        cell = function(value, index) {
-          data$label[index]
-        }
-      ),
-      
-      arrow = colDef(
-        show = TRUE,
-        name = "",
-        align = "center",
-        sortable = FALSE,
-        minWidth = 70,
-        maxWidth = 70,
-        cell = function(value, index) {
-          
-          colour <- data$color[index]
-          
-          tags$span(
-            style = paste0(
-              "background-color:", colour, "18;", # add opacity hex
-              "border-radius:15%;",
-              "width:100%;",
-              "height:100%;",
-              "display:inline-flex;",
-              "align-items:center;",
-              "justify-content:center;",
-              "padding:0px"
-            ),
-            icon(
-              name = value,
-              class = "fa-xl",
-              style = paste0(
-                "color:", colour, ";"
-              )
-            )
-          )
-        }
-      ),
-      
-      mom_change = colDef(
-        show = TRUE,
-        name = "Change from<br>previous month",
-        style = list(alignItems = "center"),
-        cell = function(value, index){
-          unit_group <- data$group[index]
-          max_value <- data$bar_max_chg[index]
-          
-          
-          label = switch(
-            unit_group,
-            "1" = comma(value),
-            "2" = paste0(value, "ppt"),
-            "3" = dollar(value)
-          )
-          
-          bar_chart_pos_neg(label, value, max_value = max_value)
-        },
-        align = "center",
-        minWidth = 200
-        
-      ),
-      
-      yoy_change = colDef(
-        show = TRUE,
-        name = "Change from<br>previous year",
-        style = list(alignItems = "center"),
-        cell = function(value, index){
-          unit_group <- data$group[index]
-          max_value <- data$bar_max_chg[index]
-          
-          label = switch(
-            unit_group,
-            "1" = comma(value),
-            "2" = paste0(value, "ppt"),
-            "3" = dollar(value)
-          )
-          
-          bar_chart_pos_neg(label, value, max_value = max_value)
-        },
-        align = "center",
-        minWidth = 200
-      ),
-      
-      yoy_pct_change = colDef(
-        show = TRUE,
-        name = "Change from<br>previous year (%)",
-        style = list(alignItems = "center"),
-        cell = function(value, index){
-          if(is.na(value)) {
-            ""
-          } else {
-            max_value <- data$bar_max_pct[index]
-            
-            label = percent(value, accuracy = 0.1, f = janitor::round_half_up)
-            
-            bar_chart_pos_neg(label, value, max_value = max_value)
-          }
-        },
-        align = "center",
-        minWidth = 200
-      )
-      
-    )
+    columns = columns
   )
 }
