@@ -65,18 +65,19 @@ ui <- function(req) {
         page_fluid(
           
           ## Tabset start ----  
-          navset_tab(id = "tabs",
+          navset_bar(id = "tabs",
+                     gap = "0.75rem",
                      ### Highlights tab ----
                      nav_panel(
                        "Highlights",
-                       h2(formatted_date, class = "mt-4 mb-3"),
-                       h3("Overview"),
+                       h2("Overview", class = "mt-4"),
                        p("Updated", strong("monthly"), "following the release of 
                          Statistics Canada's Labour Force Survey (LFS) 
                          this dashboard provides an", strong("up-to-date view of labour market conditions
                          in British Columbia.")),
                        p("Use this dashboard to:"),
                        tags$ul(
+                         class = "mb-0",
                          tags$li(strong("Explore key indicators and trends"), "related to employment, unemployment, labour force participation, and workforce characteristics"),
                          tags$li(strong("Track changes over time and compare labour market outcomes"), "across age groups, genders and regions"),
                          tags$li(strong("Access insights"), " that support research, policy development, workforce planning, and evidence-based decision-making")
@@ -87,9 +88,9 @@ ui <- function(req) {
                          tags$a("Labour Market Statistics",
                                 href = "https://www2.gov.bc.ca/gov/content/data/statistics/economy/labour-market-statistics"),
                          "webpage."),
-                       h3("Key indicators"),
+                       h2("Key indicators", class = "mt-4"),
                        withSpinner(reactableOutput("key_indicators_table")),
-                       h3("Labour force characteristics", class = "mt-4 mb-3"),
+                       h2("Labour force characteristics", class = "mt-4"),
                        layout_column_wrap(
                          width = "350px",
                          withSpinner(grVizOutput("flow", height = 300)),
@@ -111,7 +112,8 @@ ui <- function(req) {
                          col_widths = c(3, 9),
                          #### Sidebar: Selections ----
                          div(
-                           h2(formatted_date, class = "mt-4 mb-3"),
+                           p(strong("Table Selection"), class = "mt-4 mb-3"),
+                           p("Browse available labour market tables and download the results."),
                            selectInput(
                              "select_data_table",
                              label = "Select table:",
@@ -155,10 +157,11 @@ ui <- function(req) {
                      ### Trends tab ----
                      nav_panel(
                        "Trends",
-                       h2(formatted_date, class = "mt-4 mb-3"),
-                       navset_card_tab(
-                         title = "Overall trends",
+                       div(
+                       navset_card_pill(
+                         title = h2("Overall trends"),
                          id = "hl_ts",
+                         nav_spacer(),
                          nav_panel("Employment", withSpinner(dygraphOutput("hl_emp_cht"))),
                          nav_panel("Unemployment rate", withSpinner(dygraphOutput("hl_unemp_cht"))),
                          nav_panel("Participation rate", withSpinner(dygraphOutput("hl_part_cht"))),
@@ -166,9 +169,12 @@ ui <- function(req) {
                            em("Shaded areas indicate Canadian recessions"),
                            p("To zoom in on dates, move the bottom slider or click and drag your mouse on part of the chart. Double click on the chart to reset."))
                        ),
-                       navset_card_tab(
-                         title = "Age and gender",
+                       
+                       style = "margin-top:1.5rem"),
+                       navset_card_pill(
+                         title = h2("Age and gender"),
                          id = "hl_ag",
+                         nav_spacer(),
                          nav_panel(
                            "Employment",
                            radioButtons(
@@ -203,11 +209,11 @@ ui <- function(req) {
                        layout_columns(
                          col_widths = c(6, 6),
                          card(
-                           card_header("Unemployment rate by region"),
+                           card_header(h2("Unemployment rate by region")),
                            withSpinner(plotOutput("hl_reg_map"))
                          ),
                          card(
-                           card_header("Unemployment rate by census metropolitan area"),
+                           card_header(h2("Unemployment rate by census metropolitan area")),
                            withSpinner(plotOutput("hl_cma_map"))
                          )
                        )
@@ -217,12 +223,19 @@ ui <- function(req) {
                        "Definitions",
                        h2("Labour Force Statistics Information", class = "mt-4 mb-3"),
                        includeMarkdown("Definitions.MD")
+                     ),
+                     nav_spacer(),
+                     nav_item(
+                       paste("Reference date:", formatted_date)
                      )
           )  ## end of navset
           
         ), ## End of column to make changes to
         
         ## footer column ----
+        div(style = "padding-left:10px",
+            p(paste("Reference date:", formatted_date)),
+            p(paste("Last updated:", last_updated))),
         bcsFooterUI("footer")
         
       ))

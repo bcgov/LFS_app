@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+last_updated <- "August 5, 2026"
+
 ## install dev version of bcsapps for modern header/footer
 #pak::pkg_install("bcgov/bcsapps@development")
 
