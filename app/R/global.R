@@ -14,8 +14,6 @@
 # limitations under the License.
 
 
-last_updated <- "August 5, 2026"
-
 ## install dev version of bcsapps for modern header/footer
 #pak::pkg_install("bcgov/bcsapps@development")
 
@@ -70,16 +68,7 @@ bc <- qs::qread("bc.qs")
 ## YTD calculations require prev_year_jan to prev_year and curr_year_jan to curr_date
 
 ## curr_date = latest Labour Force date
-curr_date <- get_cansim_vector_for_latest_periods(vectors = "v2064700", periods = 1) %>% pull(Date) %>% max()
-prev_month <- curr_date - months(1)
-prev_year <- curr_date - years(1)
-prev_year_jan <- paste0(year(curr_date - years(1)),"-01-01") %>% ymd()
-curr_year_jan <- paste0(year(curr_date), "-01-01") %>% ymd()
-monthly_start_month <- paste0(year(curr_date - years(2)),"-01-01") %>% ymd()
-annual_start_year <- paste0(year(curr_date - years(11)),"-01-01") %>% ymd()
-annual_display_year <- paste0(year(curr_date - years(10)), "01-01") %>% ymd()
 
-formatted_date <- paste(month(curr_date, label = TRUE, abbr = FALSE), year(curr_date))
 
 
 

@@ -182,7 +182,7 @@ key_indicators <- semi_join(
   ) %>%
   mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
   select(group, label_order, label, arrow = mom_arrow, color = mom_color, mom_change, 
-         starts_with("yoy"), starts_with("bar_max"))
+         yoy_change, yoy_pct_change, starts_with("bar_max"))
 
 
 ## LF specific formatting ----

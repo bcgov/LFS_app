@@ -63,6 +63,7 @@ ui <- function(req) {
         ## Main body column ----
         ## Make changes to this column
         page_fluid(
+          title = "LFS App",
           
           ## Tabset start ----  
           navset_bar(id = "tabs",
@@ -70,7 +71,7 @@ ui <- function(req) {
                      ### Highlights tab ----
                      nav_panel(
                        "Highlights",
-                       h2("Overview", class = "mt-4"),
+                       h2("Overview"),
                        p("Updated", strong("monthly"), "following the release of 
                          Statistics Canada's Labour Force Survey (LFS) 
                          this dashboard provides an", strong("up-to-date view of labour market conditions
@@ -93,7 +94,7 @@ ui <- function(req) {
                        h2("Labour force characteristics", class = "mt-4"),
                        layout_column_wrap(
                          width = "350px",
-                         withSpinner(grVizOutput("flow", height = 300)),
+                         withSpinner(grVizOutput("flow")),
                          uiOutput("pop"),
                          uiOutput("lf"),
                          uiOutput("emp"),
@@ -227,7 +228,7 @@ ui <- function(req) {
                      ),
                      nav_spacer(),
                      nav_item(
-                       paste("Reference date:", formatted_date)
+                      textOutput("ref_date1")
                      )
           )  ## end of navset
           
@@ -235,8 +236,8 @@ ui <- function(req) {
         
         ## footer column ----
         div(style = "padding-left:10px",
-            p(paste("Reference date:", formatted_date)),
-            p(paste("Last updated:", last_updated))),
+            p(textOutput("ref_date2")),
+            p(textOutput("last_updated_date"))),
         bcsFooterUI("footer")
         
       ))
@@ -252,6 +253,24 @@ server <- function(input, output, session) {
   
   bcsapps::bcsHeaderServer(id = 'header', links = TRUE)
   bcsapps::bcsFooterServer(id = 'footer')
+  
+  ## Dates ----
+  latest_update_data <- get_cansim_vector_for_latest_periods(vectors = "v2064700", periods = 1)
+  release_date <- latest_update_data %>% pull(releaseTime)
+  curr_date <- latest_update_data  %>% pull(Date) %>% max()
+  prev_month <- curr_date - months(1)
+  prev_year <- curr_date - years(1)
+  prev_year_jan <- paste0(year(curr_date - years(1)),"-01-01") %>% ymd()
+  curr_year_jan <- paste0(year(curr_date), "-01-01") %>% ymd()
+  monthly_start_month <- paste0(year(curr_date - years(2)),"-01-01") %>% ymd()
+  annual_start_year <- paste0(year(curr_date - years(11)),"-01-01") %>% ymd()
+  annual_display_year <- paste0(year(curr_date - years(10)), "01-01") %>% ymd()
+  
+  formatted_date <- paste(month(curr_date, label = TRUE, abbr = FALSE), year(curr_date))
+  last_updated_date <- ymd_hm(release_date) %>% format(format = "%B %e, %Y")
+  
+  output$ref_date1 <- output$ref_date2 <- renderText(paste("Reference date:", formatted_date))
+  output$last_updated_date <- renderText(paste("Last updated:", last_updated_date))
   
   ## Tab 0: Highlights ----
   
