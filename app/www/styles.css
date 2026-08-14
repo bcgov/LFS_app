@@ -66,6 +66,19 @@ body, h1, h2, h3, h4, h5, h6 {
 /* CSS that is specific to your app */
 
 /* =====================
+   App page margins
+   ===================== */
+
+@media (min-width: 1050px) {
+  .app-page .tab-content {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+
+
+/* =====================
    Cards
    ===================== */
 
@@ -75,6 +88,41 @@ body, h1, h2, h3, h4, h5, h6 {
   color: var(--typography-color-primary-invert) !important;
 }
 
+/* =====================
+   Flow charts
+   ===================== */
+#flow_large svg{
+  width: auto !important;
+  height: 100% !important;
+  display: block;
+}
 
+.flowchart-small #flow_small {
+  width: 100% !important;
+  height: auto !important;
+}
 
+.flowchart-small #flow_small svg {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 500px !important;
+  display: block;
+}
 
+.flowchart-large {
+  display: none;
+}
+
+.flowchart-small {
+  display: block;
+}
+
+@media (min-width: 1050px) {
+  .flowchart-small {
+    display: none;
+  }
+
+  .flowchart-large {
+    display: block;
+  }
+}
