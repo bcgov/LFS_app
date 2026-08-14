@@ -22,7 +22,7 @@ sparkline_plot_prep <- function(data, indicator) {
   
   timeseries <- df$value
   x_axis <- seq_along(timeseries)
-  x_lim <- c(0.8, length(timeseries) + 0.2)
+  x_lim <- c(1, length(timeseries))
   y_offset <- case_when(
     max(timeseries) < 100 ~ 0.1,
     between(max(timeseries), 100, 1000) ~ 1,
@@ -52,15 +52,15 @@ sparkline_plot_prep <- function(data, indicator) {
   polygon(polygon_x, polygon_y, col = "#e6f2fd", border = NA)
   
   # Add highlighted points
-  points(
-    x_axis[pts],
-    timeseries[pts],
-    pch = 21,
-    bg = "white",
-    col = "#3c8dbc",
-    lwd = 1.5,
-    cex = 2
-  )
+  # points(
+  #   x_axis[pts],
+  #   timeseries[pts],
+  #   pch = 21,
+  #   bg = "white",
+  #   col = "#3c8dbc",
+  #   lwd = 1.5,
+  #   cex = 2
+  # )
   
 }
 
@@ -90,21 +90,26 @@ lf_value_box <- function(data_stat, data_trend, indicator, rate = FALSE) {
   )
   
   card(
-    card_header(h3(data_stat$label), class = "lfs-card-header"),
+    height = "200px",
+    card_header(data_stat$label, class = "lfs-card-header"),
     card_body(
+      class = "pb-1",
       gap = 0,
       h4(paste0(prettyNum(data_stat$current, big.mark = ","), ifelse(rate, "%", " thousand"))),
-      span(icon(data_stat$mom_arrow, style = paste0("color:", data_stat$mom_color)), 
-           prettyNum(data_stat$mom_change, big.mark = ","), 
-           ifelse(rate, "ppt", ""),
-           if(!rate) { paste0(" | ", percent(data_stat$mom_pct_change, accuracy = accuracy, f = janitor::round_half_up)) },
-           "from last month"),
-      span(icon(data_stat$yoy_arrow, style = paste0("color:", data_stat$yoy_color)), 
-           prettyNum(data_stat$yoy_change, big.mark = ","),  
-           ifelse(rate, "ppt", ""),
-           if(!rate) { paste0(" | ", percent(data_stat$yoy_pct_change, accuracy = accuracy, f = janitor::round_half_up)) },
-           "from last year"),
-      sparkline_plot(data_trend, indicator)
+      # span(icon(data_stat$mom_arrow, style = paste0("color:", data_stat$mom_color)), 
+      #      prettyNum(data_stat$mom_change, big.mark = ","), 
+      #      ifelse(rate, "ppt", ""),
+      #      if(!rate) { paste0(" | ", percent(data_stat$mom_pct_change, accuracy = accuracy, f = janitor::round_half_up)) },
+      #      "from last month"),
+      # span(icon(data_stat$yoy_arrow, style = paste0("color:", data_stat$yoy_color)), 
+      #      prettyNum(data_stat$yoy_change, big.mark = ","),  
+      #      ifelse(rate, "ppt", ""),
+      #      if(!rate) { paste0(" | ", percent(data_stat$yoy_pct_change, accuracy = accuracy, f = janitor::round_half_up)) },
+      #      "from last year"),
+      sparkline_plot(data_trend, indicator),
+      p(class = "mb-0",
+        style = "font-size:var(--typography-font-size-label)",
+        "Seasonally adjusted one year trend")
     )
   )
 }
@@ -720,7 +725,8 @@ create_reactable <- function(data, ref_date = NULL, pos_fill = "#4F81BD", neg_fi
     compact = TRUE,
     pagination = FALSE,
     searchable = FALSE,
-    style = list(fontFamily = "BC Sans"),
+    style = list(fontFamily = "BC Sans",
+                 maxWidth = "1600px"),
     defaultColDef = colDef(
       show = FALSE,
       html = TRUE,
