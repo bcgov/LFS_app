@@ -51,7 +51,7 @@ ui <- function(req) {
         tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active
                                       {border-top-color: #3c8dbc; border-left: 1px solid #3c8dbc;'))),
         tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active>a {border-right: 1px solid #3c8dbc}'))),
-        
+
         ## Header column ----
         bcsHeaderUI(
           id = "header",
@@ -64,48 +64,72 @@ ui <- function(req) {
         ## Make changes to this column
         page_fluid(
           title = "LFS App",
+          class = "app-page",
           
           ## Tabset start ----  
           navset_bar(id = "tabs",
-                     gap = "0.75rem",
+                     gap = "0",
                      ### Highlights tab ----
                      nav_panel(
                        "Highlights",
-                       h2("Overview"),
-                       p("Updated", strong("monthly"), "following the release of 
-                         Statistics Canada's Labour Force Survey (LFS) 
+                       h2("Labour Force Survey", class = "mt-3 mb-0"),
+                       h3(textOutput("ref_date_title"), class = "mt-0"),
+                       tags$details(
+                         tags$summary("About this dashboard"),
+                           p("Updated", strong("monthly"), "following the release of
+                         Statistics Canada's Labour Force Survey (LFS)
                          this dashboard provides an", strong("up-to-date view of labour market conditions
                          in British Columbia.")),
-                       p("Use this dashboard to:"),
-                       tags$ul(
-                         class = "mb-0",
-                         tags$li(strong("Explore key indicators and trends"), "related to employment, unemployment, labour force participation, and workforce characteristics"),
-                         tags$li(strong("Track changes over time and compare labour market outcomes"), "across age groups, genders and regions"),
-                         tags$li(strong("Access insights"), " that support research, policy development, workforce planning, and evidence-based decision-making")
-                       ),
-                       p("For additional information about the Labour Force Survey
+                           p("Use this dashboard to:"),
+                           tags$ul(
+                             class = "mb-0",
+                             tags$li(strong("Explore key indicators and trends"), "related to employment, unemployment, labour force participation, and workforce characteristics"),
+                             tags$li(strong("Track changes over time and compare labour market outcomes"), "across age groups, genders and regions"),
+                             tags$li(strong("Access insights"), " that support research, policy development, workforce planning, and evidence-based decision-making")
+                           ),
+                           p("For additional information about the Labour Force Survey
                            and other labour market statistics, visit the
                            Province of British Columbia's",
-                         tags$a("Labour Market Statistics",
-                                href = "https://www2.gov.bc.ca/gov/content/data/statistics/economy/labour-market-statistics"),
-                         "webpage."),
-                       h2("Key indicators", class = "mt-4"),
-                       withSpinner(reactableOutput("key_indicators_table")),
-                       h2("Labour force characteristics", class = "mt-4"),
-                       layout_column_wrap(
-                         width = "350px",
-                         withSpinner(grVizOutput("flow")),
-                         uiOutput("pop"),
-                         uiOutput("lf"),
-                         uiOutput("emp"),
-                         uiOutput("unemp"),
-                         uiOutput("unemprate"),
-                         uiOutput("partrate"),
-                         uiOutput("emprate")
+                             tags$a("Labour Market Statistics",
+                                    href = "https://www2.gov.bc.ca/gov/content/data/statistics/economy/labour-market-statistics"),
+                             "webpage.")
+                         
                        ),
+                       h3("Highlights", class = "mt-4"),
+                       p(
+                         tags$ul(
+                           class = "mb-4",
+                           tags$li("highlight point one"),
+                           tags$li("highlight point two"),
+                           tags$li("highlight point three"),
+                         )
+                       ),
+                       layout_column_wrap(
+                         width = "300px",
+                         fixed_width = FALSE,
+                         uiOutput("emp"),
+                         uiOutput("unemprate"),
+                         uiOutput("lf"),
+                         uiOutput("partrate")
+                       ),
+                       h3("Key indicators", class = "mt-4"),
+                       p(class = "mb-2",
+                         "Selected indicators showing recent changes in B.C.'s labour market"),
+                       withSpinner(reactableOutput("key_indicators_table")),
+                       h3("Understanding the labour market", class = "mt-4"),
+                       p(class = "mb-2",
+                       "The population aged 15 years and over is divided 
+                         into the labour force and those not in the labour force. 
+                         The labour force consists of people who are employed 
+                         or unemployed."),
+                       div(class = "flowchart-small",
+                           withSpinner(grVizOutput("flow_small" ))),
+                       div(class = "flowchart-large",
+                           withSpinner(grVizOutput("flow_large", height = 300))),
+                       h3("Labour force characteristics", class = "mt-4"),
+                       p(class = "mb-2",
+                         "Detailed estimates and recent changes for the components of the labour market"),
                        withSpinner(reactableOutput("lf_characteristics_table"))
-                       
-                       
                      ),
                      ### Data tables tab ----
                      nav_panel(
@@ -254,21 +278,7 @@ server <- function(input, output, session) {
   bcsapps::bcsHeaderServer(id = 'header', links = TRUE)
   bcsapps::bcsFooterServer(id = 'footer')
   
-  ## Dates ----
-  latest_update_data <- get_cansim_vector_for_latest_periods(vectors = "v2064700", periods = 1)
-  release_date <- latest_update_data %>% pull(releaseTime)
-  curr_date <- latest_update_data  %>% pull(Date) %>% max()
-  prev_month <- curr_date - months(1)
-  prev_year <- curr_date - years(1)
-  prev_year_jan <- paste0(year(curr_date - years(1)),"-01-01") %>% ymd()
-  curr_year_jan <- paste0(year(curr_date), "-01-01") %>% ymd()
-  monthly_start_month <- paste0(year(curr_date - years(2)),"-01-01") %>% ymd()
-  annual_start_year <- paste0(year(curr_date - years(11)),"-01-01") %>% ymd()
-  annual_display_year <- paste0(year(curr_date - years(10)), "01-01") %>% ymd()
-  
-  formatted_date <- paste(month(curr_date, label = TRUE, abbr = FALSE), year(curr_date))
-  last_updated_date <- ymd_hm(release_date) %>% format(format = "%B %e, %Y")
-  
+  output$ref_date_title <- renderText(paste("British Columbia ·", formatted_date))
   output$ref_date1 <- output$ref_date2 <- renderText(paste("Reference date:", formatted_date))
   output$last_updated_date <- renderText(paste("Last updated:", last_updated_date))
   
@@ -281,6 +291,13 @@ server <- function(input, output, session) {
     
   })
   
+  ### LFC table ----
+  output$lf_characteristics_table <- renderReactable({
+    
+    table <- create_reactable(lf_characteristics, ref_date = formatted_date, pos_fill = "#1F497D", neg_fill = "#D4D4D4")
+    
+  })
+  
   ### LFC KPI cards ----
   
   output$pop <- renderUI({
@@ -289,13 +306,6 @@ server <- function(input, output, session) {
       data_trend = cansim_data,
       indicator = "Population"
     )
-  })
-  
-  ### LFC table ----
-  output$lf_characteristics_table <- renderReactable({
-    
-    table <- create_reactable(lf_characteristics, ref_date = formatted_date, pos_fill = "#1F497D", neg_fill = "#D4D4D4")
-    
   })
   
   output$lf <- renderUI({
@@ -350,22 +360,28 @@ server <- function(input, output, session) {
   })
   
   ### Flowchart ----
-  output$flow <- renderGrViz({
-    
-    data1 <<- lf_characteristics %>%
+  flow_chart_data <- function(data) {
+    data1 <<- data %>%
       filter(!str_detect(label, "rate")) %>%
       filter(!str_detect(label, "time")) %>% ## remove full-time/part-time from table
       select(label, current) %>%
       mutate(current = prettyNum(1000 * current, big.mark = ","))
     
-    data2 <<- lf_characteristics %>%
+    data2 <<- data %>%
       filter(str_detect(label, "rate") & label != "Employment rate") %>%
       mutate(current = paste0(current, "%")) %>%
       select(label, current)
-    
+  }
+  
+  output$flow_small <- renderGrViz({
+    flow_chart_data(lf_characteristics)
     DiagrammeR::grViz("www/diagrammerFlow.gv")
-
    })
+  
+  output$flow_large <- renderGrViz({
+    flow_chart_data(lf_characteristics)
+    DiagrammeR::grViz("www/diagrammerFlow_v2.gv")
+  })
   
   ### Dygraphs ----
   tseries <- reactive({
@@ -593,6 +609,8 @@ server <- function(input, output, session) {
   })
  
   selected_table <- reactive({
+    
+    req(input$select_data_table)
     
     input$select_data_table
     
