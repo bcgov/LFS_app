@@ -101,7 +101,7 @@ ui <- function(req) {
                            class = "mb-4",
                            tags$li("highlight point one"),
                            tags$li("highlight point two"),
-                           tags$li("highlight point three"),
+                           tags$li("highlight point three")
                          )
                        ),
                        layout_column_wrap(
@@ -130,6 +130,142 @@ ui <- function(req) {
                        p(class = "mb-2",
                          "Detailed estimates and recent changes for the components of the labour market"),
                        withSpinner(reactableOutput("lf_characteristics_table"))
+                     ),
+                     ### Monthly comparison tab ----
+                     nav_panel(
+                       "Monthly comparisons",
+                       h2("Provincial comparisons", class = "mt-3 mb-3"),
+                       layout_column_wrap(
+                         width = 1/2,
+                         card(
+                           card_header(
+                             div(
+                               div(class = "mb-1",
+                                   style = "font:var(--typography-bold-h5)",
+                                   "Monthly Employment Change for Canada and Provinces"),
+                               div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+                                   "Seasonally adjusted")
+                             )
+                           ),
+                           card_body(
+                             withSpinner(plotlyOutput("bar1")),
+                             div(class = "mb-0",
+                                 style = "font-size:var(--typography-font-size-label)",
+                                 p("Source:",
+                                   "Statistics Canada.", 
+                                   a(href = "https://doi.org/10.25318/1410028701-eng",
+                                     "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
+                                   )
+                                 )
+                             )
+                           )),
+                         card(
+                           card_header(
+                             div(
+                               div(class = "mb-1",
+                                   style = "font:var(--typography-bold-h5)",
+                                   "Unemployment rate for Canada and Provinces"),
+                               div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+                                   "15 years and over, seasonally adjusted")
+                             )
+                           ),
+                           card_body(
+                             withSpinner(plotlyOutput("bar2")),
+                             div(class = "mb-0",
+                                 style = "font-size:var(--typography-font-size-label)",
+                                 p("Source:",
+                                   "Statistics Canada.", 
+                                   a(href = "https://doi.org/10.25318/1410028701-eng",
+                                     "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
+                                   )
+                                 )
+                             )
+                         ))),
+                       h2("Age and gender", class = "mt-4 mb-3"),
+                       card(
+                         card_header(uiOutput("ag_chart_title")),
+                         card_body(
+                           layout_sidebar(
+                             sidebar = sidebar(
+                               width = 300,
+                               position = "right",
+                               selectInput(
+                                 "ag_selected_indicator",
+                                 "Select indicator",
+                                 choices = c("Employment", "Unemployment rate", "Participation rate"),
+                                 selected = "Employment"),
+                               selectInput(
+                                 "ag_selected_group",
+                                 "Select filter",
+                                 choices = c("Age group and gender", "Age group", "Gender"),
+                                 selected = "Age group and gender"),
+                               uiOutput("ag_selection_value")
+                            
+                           ),
+                           withSpinner(plotlyOutput("age_gender_chart")),
+                         ),
+                         div(class = "mb-0",
+                             style = "font-size:var(--typography-font-size-label)",
+                             p("Source:",
+                               "Statistics Canada.", 
+                               a(href = "https://doi.org/10.25318/1410028701-eng",
+                                 "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
+                               )
+                             )
+                         )
+                       )),
+                       
+                     h2("Regional", class = "mt-4 mb-3"),
+                       layout_columns(
+                         col_widths = c(6, 6),
+                         card(
+                           card_header(
+                             div(
+                               div(class = "mb-1",
+                                   style = "font:var(--typography-bold-h5)",
+                                   "Unemployment rate by region"),
+                               div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+                                   "3-month moving average, unadjusted")
+                             )
+                            ),
+                           withSpinner(plotOutput("hl_reg_map")),
+                           div(class = "mb-0",
+                             style = "font-size:var(--typography-font-size-label)",
+                             p("Source:",
+                               "Statistics Canada.", 
+                               a(href = "https://doi.org/10.25318/1410046201-eng",
+                                 "Table 14-10-0462-01  Labour force characteristics by economic region, three-month moving average, unadjusted for seasonality"
+                                 )
+                               )
+                             )
+                           ),
+                         card(
+                          # full_screen = TRUE,
+                           card_header(
+                             div(
+                               div(class = "mb-1",
+                                   style = "font:var(--typography-bold-h5)",
+                                   "Unemployment rate by census metropolitan area"),
+                               div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+                                   "3-month moving average, unadjusted")
+                             )
+                            ),
+                           withSpinner(plotOutput("hl_cma_map")),
+                           div(class = "mb-0",
+                               style = "font-size:var(--typography-font-size-label)",
+                               p("Source:",
+                                 "Statistics Canada.", 
+                                 a(href = "https://doi.org/10.25318/1410045801-eng",
+                                   "Table 14-10-0458-01  Labour force characteristics by census metropolitan area, three-month moving average, unadjusted for seasonality"
+                                 )
+                               )
+                           )
+                         )
+                       )    
                      ),
                      ### Data tables tab ----
                      nav_panel(
@@ -196,53 +332,8 @@ ui <- function(req) {
                            p("To zoom in on dates, move the bottom slider or click and drag your mouse on part of the chart. Double click on the chart to reset."))
                        ),
                        
-                       style = "margin-top:1.5rem"),
-                       navset_card_pill(
-                         title = h2("Age and gender"),
-                         id = "hl_ag",
-                         nav_spacer(),
-                         nav_panel(
-                           "Employment",
-                           radioButtons(
-                             "emp_m_or_y",
-                             label = NULL,
-                             choices = c("Change from previous month" = "mom",
-                                         "Change from same month, previous year" = "yoy"),
-                             selected = "mom",
-                             inline = TRUE),
-                           withSpinner(plotOutput("hl_emp_ag_m_or_y"))),
-                         nav_panel(
-                           "Unemployment rate", 
-                           radioButtons(
-                             "unemp_m_or_y",
-                             label = NULL,
-                             choices = c("Change from previous month" = "mom",
-                                         "Change from same month, previous year" = "yoy"),
-                             selected = "mom",
-                             inline = TRUE),
-                           withSpinner(plotOutput("hl_unemp_ag_m_or_y"))),
-                         nav_panel(
-                           "Participation rate", 
-                           radioButtons(
-                             "part_m_or_y",
-                             label = NULL,
-                             choices = c("Change from previous month" = "mom",
-                                         "Change from same month, previous year" = "yoy"),
-                             selected = "mom",
-                             inline = TRUE),
-                           withSpinner(plotOutput("hl_part_ag_m_or_y")))
-                       ),
-                       layout_columns(
-                         col_widths = c(6, 6),
-                         card(
-                           card_header(h2("Unemployment rate by region")),
-                           withSpinner(plotOutput("hl_reg_map"))
-                         ),
-                         card(
-                           card_header(h2("Unemployment rate by census metropolitan area")),
-                           withSpinner(plotOutput("hl_cma_map"))
-                         )
-                       )
+                       style = "margin-top:1.5rem")
+                       
                      ),
                      ### Definitions tab ----
                      nav_panel(
@@ -282,7 +373,7 @@ server <- function(input, output, session) {
   output$ref_date1 <- output$ref_date2 <- renderText(paste("Reference date:", formatted_date))
   output$last_updated_date <- renderText(paste("Last updated:", last_updated_date))
   
-  ## Tab 0: Highlights ----
+  ## Highlights tab ----
   
   ### Key indicators table ----
   output$key_indicators_table <- renderReactable({
@@ -383,8 +474,352 @@ server <- function(input, output, session) {
     DiagrammeR::grViz("www/diagrammerFlow_v2.gv")
   })
   
+  ## Monthly comparisons tab ----
+  output$bar1 <- renderPlotly({
+    p <- bar_chart_1()
+    p
+  })
+  
+  output$bar2 <- renderPlotly({
+    p <- bar_chart_2()
+    p
+  })
+  
+  ### Age and Gender chart ----
+  ## get dates:
+  current <- formatted_date
+  mom <- paste("Change from", month(prev_month, label = TRUE, abbr = FALSE), year(prev_month))
+  yoy <- paste("Change from", month(prev_year, label = TRUE, abbr = FALSE), year(prev_year))
+  
+  output$ag_selection_value <- renderUI({
+
+    radioButtons(
+      "ag_selected_value",
+      label = NULL,
+      choices = setNames(
+        c("current", "mom", "yoy"),
+        c(current, mom, yoy)),
+      selected = "mom")
+  })
+  
+  output$ag_chart_title <- renderUI({
+    
+    "Title text"
+    
+  })
+  
+
+  ag_reactive <- reactive({
+    
+    req(input$ag_selected_indicator)
+    req(input$ag_selected_group)
+    req(input$ag_selected_value)
+    
+    age_groups <- case_when(
+      input$ag_selected_group == "Gender" ~ "All Ages",
+      TRUE ~ c("15 to 24 years", "25 to 54 years", "55 years and over")
+    )
+    
+    genders <- case_when(
+      input$ag_selected_group == "Age group" ~ "Total",
+      TRUE ~ c("Men+", "Women+")
+    )
+    
+    args <- list(
+      indicator = input$ag_selected_indicator,
+      age_groups = age_groups,
+      genders = genders,
+      comparator_type = input$ag_selected_value
+    )
+    
+  }) %>% bindCache(input$ag_selected_indicator, input$ag_selected_group, input$ag_selected_value)
+  
+  output$age_gender_chart <- renderPlotly({
+    args <- ag_reactive()
+    p <- do.call(bar_chart_3, args)
+    p
+  })
+  
+
+  ### Regions and CMAs ----
+  
+  output$hl_reg_map <- renderPlot({
+    
+    
+    vectors_filt <- vectors %>% 
+      filter(table == "region",
+             labour_force_characteristics == "Unemployment rate",
+             data_type == "Unadjusted",
+             geo != "British Columbia") 
+    
+    
+    data <- get_cansim_vector(vectors = vectors_filt %>%
+                                pull(vector),
+                              start_time = prev_year) %>%
+      clean_names() %>%
+      select(vector, ref_date, value) %>%
+      mutate(ref_date = ymd(ref_date)) %>%
+      filter(ref_date %in% c(curr_date)) %>%
+      left_join(vectors_filt, by = "vector") %>%
+      mutate(text_color = case_when(value > 0.9*max(value) ~ "white",
+                                    TRUE ~ "black"),
+             vjust = case_when(geo == "Kootenay" ~ 1,
+                               TRUE ~ 0.3))
+    
+    geo_data <- economic_regions %>%
+      left_join(data, by = "geo") %>%
+      mutate(geo_label = str_wrap(str_extract(geo, "^([^,])+"), width = 10))
+    
+    ggplot() +
+      geom_sf(data = geo_data, aes(fill = value ), colour = "dark grey", lwd = 0.5) +
+      geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5, fontface = "bold") +
+      labs(x = NULL, y = NULL#,
+           #caption = "Unadjusted\n3 Month Moving Average"
+           ) +
+      scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
+      scale_color_manual(values = c("white" = "white", "black" = "black"))+
+      guides(color = "none") +
+      theme_minimal() +
+      theme(
+        text = element_text(size = 16, family = "BCSans"),
+        # legend.title = element_text(size = 11),
+        # legend.text = element_text(size = 10),
+        plot.caption = element_text(hjust = 0.5),
+        panel.grid.major = element_line(colour = "transparent"),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face="bold"),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.margin = margin(t = 0, r = 0, b = 20, l = 5, unit = "pt")
+      ) 
+    
+    
+  })  
+  
+  output$hl_cma_map <- renderPlot({
+    
+    # ------------------------------------------------------------
+    # Get CMA unemployment-rate data
+    # ------------------------------------------------------------
+    
+    vectors_filt <- vectors %>%
+      filter(
+        table == "cma",
+        labour_force_characteristics == "Unemployment rate",
+        data_type == "Unadjusted",
+        geo != "British Columbia"
+      )
+    
+    data <- get_cansim_vector(
+      vectors = vectors_filt %>%
+        pull(vector),
+      start_time = prev_year
+    ) %>%
+      clean_names() %>%
+      select(vector, ref_date, value) %>%
+      mutate(ref_date = ymd(ref_date)) %>%
+      filter(ref_date %in% c(curr_date)) %>%
+      left_join(vectors_filt, by = "vector")
+    
+    
+    # ------------------------------------------------------------
+    # Join data to CMA geometries
+    # ------------------------------------------------------------
+    
+    geo_data <- cmas %>%
+      left_join(data, by = "geo") %>%
+      mutate(
+        vjust = case_when(
+          geo == "Victoria" ~ 1.7,
+          geo == "Abbotsford-Mission" ~ 1,
+          geo == "Chilliwack" ~ 2.3,
+          TRUE ~ -1.1
+        ),
+        hjust = case_when(
+          geo == "Abbotsford-Mission" ~ -0.25,
+          geo == "Chilliwack" ~ 0.3,
+          geo == "Kelowna" ~ 0,
+          geo == "Victoria" ~ 0.9,
+          TRUE ~ 0.05
+        )
+      )
+    
+    
+    # ------------------------------------------------------------
+    # Project geometries
+    # ------------------------------------------------------------
+    
+    geo_data_proj <- geo_data %>%
+      st_transform(3005)
+    
+    bc_proj <- bc %>%
+      st_transform(3005)
+    
+    
+    # ------------------------------------------------------------
+    # Create larger circle around all CMAs
+    # ------------------------------------------------------------
+    
+    bbox <- st_bbox(geo_data_proj)
+    
+    centre_x <- (bbox["xmin"] + bbox["xmax"]) / 2
+    centre_y <- (bbox["ymin"] + bbox["ymax"]) / 1.7 ## make center slightly higher than 50%
+    
+    # Increase this value for a larger circle
+    radius <- max(
+      bbox["xmax"] - centre_x,
+      bbox["ymax"] - centre_y
+    ) + 225000
+    
+    cma_circle <- st_point(
+      c(centre_x, centre_y)
+    ) %>%
+      st_sfc(crs = 3005) %>%
+      st_buffer(radius)
+    
+    
+    # ------------------------------------------------------------
+    # Clip BC to the circular area
+    # ------------------------------------------------------------
+    
+    bc_clipped <- st_intersection(
+      bc_proj,
+      cma_circle
+    )
+    
+    
+    # ------------------------------------------------------------
+    # Plot
+    # ------------------------------------------------------------
+    
+    ggplot() +
+      
+      # Water / background
+      geom_sf(
+        data = st_as_sf(cma_circle),
+        fill = "white",
+        colour = "#BDBDBD",
+        linewidth = 0.8
+      ) +
+      
+      # BC land
+      geom_sf(
+        data = bc_clipped,
+        fill = "#D9D9D9",
+        colour = "#A6A6A6",
+        linewidth = 0.6
+      ) +
+      
+      # CMA polygons
+      geom_sf(
+        data = geo_data_proj,
+        aes(fill = value),
+        colour = "white",
+        linewidth = 0.7
+      ) +
+      
+      # CMA labels
+      geom_sf_text(
+        data = geo_data_proj,
+        aes(
+          label = paste0(
+            geo,
+            "\n",
+            round(value, 1),
+            "%"
+          ),
+          vjust = vjust,
+          hjust = hjust
+        ),
+        size = 3.5,
+        colour = "#222222"
+      ) +
+      
+      # Zoom to the entire circle
+      coord_sf(
+        xlim = st_bbox(cma_circle)[c("xmin", "xmax")],
+        ylim = st_bbox(cma_circle)[c("ymin", "ymax")],
+        expand = FALSE
+      ) +
+      
+      scale_fill_viridis(
+        name = "Unemployment\nRate (%)", 
+        direction = -1, 
+        breaks = breaks_pretty(n = 5)
+        ) +
+      # scale_fill_viridis_c(
+      #   option = "C",
+      #   name = "Unemployment rate",
+      #   na.value = "grey90"
+      # ) +
+      
+      theme_void() +
+      
+      theme(
+        #legend.position = "bottom",
+        legend.box.margin = margin(l = 50),
+        text = element_text(size = 16, family = "BCSans"),
+        plot.margin = margin(10, 10, 10, 10)
+      )
+  })
+  
+  # output$hl_cma_map <- renderPlot({
+  #   
+  # vectors_filt <- vectors %>%
+  #   filter(table == "cma",
+  #          labour_force_characteristics == "Unemployment rate",
+  #          data_type == "Unadjusted",
+  #          geo != "British Columbia")
+  # 
+  # 
+  #   data <- get_cansim_vector(vectors = vectors_filt %>%
+  #                               pull(vector),
+  #                             start_time = prev_year) %>%
+  #     clean_names() %>%
+  #     select(vector, ref_date, value) %>%
+  #     mutate(ref_date = ymd(ref_date)) %>%
+  #     filter(ref_date %in% c(curr_date)) %>%
+  #     left_join(vectors_filt, by = "vector")
+  # 
+  #   geo_data <- cmas %>%
+  #     left_join(data, by = "geo") %>%
+  #     mutate(vjust = case_when(geo == "Victoria" ~ 1.7,
+  #                              geo == "Abbotsford-Mission" ~ 1,
+  #                              geo == "Chilliwack" ~ 2.3,
+  #                              TRUE ~ -1.1),
+  #            hjust = case_when(geo == "Abbotsford-Mission" ~ -0.25,
+  #                              geo == "Chilliwack" ~ 0.3,
+  #                              geo == "Kelowna" ~ 0,
+  #                              geo == "Victoria" ~ 0.9,
+  #                              geo == "Vancouver" ~ 0.05))
+  #   
+  #   ggplot() +
+  #     geom_sf(data = bc, lwd = 0.05) +
+  #     geom_sf(data = geo_data, aes(fill = value), colour = "dark grey", lwd = 0.4) +
+  #     geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5, fontface = "bold") +
+  #     labs(x = NULL, y = NULL)+#,
+  #          #caption = "Unadjusted\n3 Month Moving Average") +
+  #     scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
+  #     theme_minimal() +
+  #     theme(
+  #       text = element_text(size = 16, family = "BCSans"),
+  #       # legend.title = element_text(size = 11),
+  #       # legend.text = element_text(size = 10),
+  #       plot.caption = element_text(hjust = 0.5),
+  #       panel.grid.major = element_line(colour = "transparent"),
+  #       axis.text = element_blank(),
+  #       plot.title = element_text(hjust = 0.5, face="bold"),
+  #       plot.subtitle = element_text(hjust = 0.5),
+  #       plot.margin = margin(t = 0, r = 0, b = 20, l = 5, unit = "pt")
+  #     )
+  #   
+  # })
+  # 
+  ## Trends tab ----
+  
   ### Dygraphs ----
   tseries <- reactive({
+    
+    req(input$hl_ts)
     
     vector <- case_when(
       input$hl_ts == "Unemployment rate" ~ "v2064705",
@@ -421,178 +856,7 @@ server <- function(input, output, session) {
           
   }) %>% bindCache(input$hl_ts)
   
-  ### Age and Gender chart ----
-  ag_reactive <- reactive({
-    
-    vectors_filt <- vectors %>% 
-      filter(str_detect(table, "age_gender") & 
-               labour_force_characteristics == str_to_sentence(input$hl_ag) &
-               data_type == "Seasonally adjusted") 
-    
-    
-    data <- get_cansim_vector(vectors = vectors_filt %>%
-                                pull(vector),
-                              start_time = prev_year) %>%
-      clean_names() %>%
-      select(vector, ref_date, value) %>%
-      mutate(ref_date = ymd(ref_date)) %>%
-      filter(ref_date %in% c(curr_date, prev_month, prev_year)) %>%
-      left_join(vectors_filt, by = "vector") %>%
-      mutate(date = case_when(ref_date == curr_date ~ "Current",
-                              ref_date == prev_month ~ "Previous month",
-                              ref_date == prev_year ~ "Same month, previous year")) 
-    
-  }) %>% bindCache(input$hl_ag)
-  
-  output$hl_emp_ag_m_or_y <-
-    output$hl_unemp_ag_m_or_y <-
-    output$hl_part_ag_m_or_y <- renderPlot({
-      
-      m_or_y <- case_when(input$hl_ag == "Employment" ~ input$emp_m_or_y,
-                          input$hl_ag == "Unemployment rate" ~ input$unemp_m_or_y, 
-                          input$hl_ag == "Participation rate" ~ input$part_m_or_y)
-      
-      data <- ag_reactive() %>%
-        select(-ref_date) %>%
-        pivot_wider(names_from = "date", values_from = "value") %>%
-        mutate(mom = Current - `Previous month`,
-               yoy = Current - `Same month, previous year`) %>%
-        pivot_longer(cols = c(mom, yoy), names_to = "comparison", values_to = "value") %>%
-        filter(comparison == m_or_y) %>%
-        mutate(vjust = ifelse(value > 0, 1.5, -1.5))
-      
-      label <- case_when(str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month (ppt)",
-                         str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year (ppt)",
-                         !str_detect(input$hl_ag, "Rate") & m_or_y == "mom" ~ "Change from previous month ('000)",
-                         !str_detect(input$hl_ag, "Rate") & m_or_y == "yoy" ~ "Change from same month, previous year ('000)")
-      
-      colors <- RColorBrewer::brewer.pal(5, name = "Blues")[2:4]
-      names(colors) <- data %>% pull(gender) %>% unique()
-      
-      p <- ggplot(data, aes(x = age_group, y = value, fill = gender)) +
-        geom_col(position = position_dodge(width = 0.5), width = 0.5) +
-        geom_hline(yintercept = 0) + 
-        labs(x = "", y = "", fill = "", 
-             title = paste("B.C.", input$hl_ag, "by Age and Gender"), 
-             subtitle = label) +
-        geom_text(aes(label = format(round_half_up(value, digits = 1),  big.mark = ",", nsmall = 1), vjust = vjust),
-                  position = position_dodge(width = 0.5),
-                  size = 5) +
-        scale_fill_manual(values = colors) +
-        bcstats_chart_theme +
-        theme(plot.title = element_text(hjust = 0.5),
-              plot.subtitle = element_text(hjust = 0.5)) 
-      
-      p
-
-    }) 
-  
-  ### Regions and CMAs ----
-  
-  output$hl_reg_map <- renderPlot({
-    
-    
-    vectors_filt <- vectors %>% 
-      filter(table == "region",
-             labour_force_characteristics == "Unemployment rate",
-             data_type == "Unadjusted",
-             geo != "British Columbia") 
-    
-    
-    data <- get_cansim_vector(vectors = vectors_filt %>%
-                                pull(vector),
-                              start_time = prev_year) %>%
-      clean_names() %>%
-      select(vector, ref_date, value) %>%
-      mutate(ref_date = ymd(ref_date)) %>%
-      filter(ref_date %in% c(curr_date)) %>%
-      left_join(vectors_filt, by = "vector") %>%
-      mutate(text_color = case_when(value > 0.9*max(value) ~ "white",
-                                    TRUE ~ "black"),
-             vjust = case_when(geo == "Kootenay" ~ 1,
-                               TRUE ~ 0.3))
-    
-    geo_data <- economic_regions %>%
-      left_join(data, by = "geo") %>%
-      mutate(geo_label = str_wrap(str_extract(geo, "^([^,])+"), width = 10))
-    
-    ggplot() +
-      geom_sf(data = geo_data, aes(fill = value ), colour = "dark grey", lwd = 0.5) +
-      geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 2.5, fontface = "bold") +
-      labs(x = NULL, y = NULL,
-           caption = "Unadjusted\n3 Month Moving Average") +
-      scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
-      scale_color_manual(values = c("white" = "white", "black" = "black"))+
-      guides(color = "none") +
-      theme_minimal() +
-      theme(
-        text = element_text(size = 16, family = "BCSans"),
-        # legend.title = element_text(size = 11),
-        # legend.text = element_text(size = 10),
-        plot.caption = element_text(hjust = 0.5),
-        panel.grid.major = element_line(colour = "transparent"),
-        axis.text = element_blank(),
-        plot.title = element_text(hjust = 0.5, face="bold"),
-        plot.subtitle = element_text(hjust = 0.5),
-        plot.margin = margin(t = 0, r = 0, b = 20, l = 5, unit = "pt")
-      ) 
-    
-    
-  })  
-  
-  output$hl_cma_map <- renderPlot({
-    
-    vectors_filt <- vectors %>% 
-      filter(table == "cma",
-             labour_force_characteristics == "Unemployment rate",
-             data_type == "Unadjusted",
-             geo != "British Columbia") 
-    
-    
-    data <- get_cansim_vector(vectors = vectors_filt %>%
-                                pull(vector),
-                              start_time = prev_year) %>%
-      clean_names() %>%
-      select(vector, ref_date, value) %>%
-      mutate(ref_date = ymd(ref_date)) %>%
-      filter(ref_date %in% c(curr_date)) %>%
-      left_join(vectors_filt, by = "vector") 
-    
-    geo_data <- cmas %>%
-      left_join(data, by = "geo") %>%
-      mutate(vjust = case_when(geo == "Victoria" ~ 1.7,
-                               geo == "Abbotsford-Mission" ~ 1,
-                               geo == "Chilliwack" ~ 2.3,
-                               TRUE ~ -1.1),
-             hjust = case_when(geo == "Abbotsford-Mission" ~ -0.25,
-                               geo == "Chilliwack" ~ 0.3,
-                               geo == "Kelowna" ~ 0,
-                               geo == "Victoria" ~ 0.9,
-                               geo == "Vancouver" ~ 0.05))
-    
-    ggplot() +
-      geom_sf(data = bc, lwd = 0.05) +
-      geom_sf(data = geo_data, aes(fill = value), colour = "dark grey", lwd = 0.4) +
-      geom_sf_text(data = geo_data, aes(label = geo, vjust = vjust, hjust = hjust), size = 2.5, fontface = "bold") +
-      labs(x = NULL, y = NULL,
-           caption = "Unadjusted\n3 Month Moving Average") +
-      scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
-      theme_minimal() +
-      theme(
-        text = element_text(size = 16, family = "BCSans"),
-        # legend.title = element_text(size = 11),
-        # legend.text = element_text(size = 10),
-        plot.caption = element_text(hjust = 0.5),
-        panel.grid.major = element_line(colour = "transparent"),
-        axis.text = element_blank(),
-        plot.title = element_text(hjust = 0.5, face="bold"),
-        plot.subtitle = element_text(hjust = 0.5),
-        plot.margin = margin(t = 0, r = 0, b = 20, l = 5, unit = "pt")
-      )
-    
-  })
-  
-  ## Tab 1: Data tables ---- 
+  ## Data tables tab: content ---- 
   
   ### Datatable ----
   
@@ -639,6 +903,8 @@ server <- function(input, output, session) {
   
   #### Get table data ----
   table_reactive <- reactive({
+    
+    req(input$select_data_table)
     
     if(selected_table() == "default") {
       t <- NULL
@@ -820,7 +1086,7 @@ server <- function(input, output, session) {
     
   })
   
-  ## Tab 1: Side bar  ----
+  ## Data tables tab: Side bar  ----
   
   ### Data type radio ----
   observe({
