@@ -55,23 +55,6 @@ economic_regions <- qs::qread("economic_regions.qs")
 cmas <- qs::qread("cmas.qs")
 bc <- qs::qread("bc.qs")
 
-### Date References ----
-
-## Summary requires curr_date, prev_month and prev_year
-
-## MOM calculations require monthly_start_month (Jan of 2 years ago) to curr_date
-###  and display from prev_year_jan to curr_date
-
-## YOY calculations require annual_start_year (11 years ago) 
-###  and display from annual_display year
-
-## YTD calculations require prev_year_jan to prev_year and curr_year_jan to curr_date
-
-## curr_date = latest Labour Force date
-
-
-
-
 ## Table Details for App ----
 dt_details <- tibble::tribble(
                         ~table_id,                                                               ~table_name,                                             ~grouping, ~include_avg_pct_chg, ~include_pct_chg, ~include_diff,
