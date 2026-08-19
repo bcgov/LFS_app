@@ -229,7 +229,7 @@ bar_chart_3 <- function(indicator = "Employment",
            yoy = current - previous_year) %>%
     select(-previous_month, -previous_year) %>%
     pivot_longer(cols = c(current, mom, yoy), names_to = "comparator", values_to = "value") %>%
-    mutate(label = label_comma()(value)) %>%
+    mutate(label = label_comma(accuracy = 0.1)(value)) %>%
     filter(comparator == comparator_type)
   
   age_group_bar_chart(df)
