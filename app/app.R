@@ -147,14 +147,12 @@ ui <- function(req) {
                                ),
                                card_body(
                                  withSpinner(plotlyOutput("bar1")),
-                                 div(class = "mb-0",
-                                     style = "font-size:var(--typography-font-size-label)",
-                                     p("Source:",
-                                       "Statistics Canada.", 
-                                       a(href = "https://doi.org/10.25318/1410028701-eng",
-                                         "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
+                                 p(class = "mb-0 source",
+                                   "Source:",
+                                   "Statistics Canada.", 
+                                   a(href = "https://doi.org/10.25318/1410028701-eng",
+                                     "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
                                        )
-                                     )
                                  )
                                )),
                              card(
@@ -171,14 +169,12 @@ ui <- function(req) {
                                ),
                                card_body(
                                  withSpinner(plotlyOutput("bar2")),
-                                 div(class = "mb-0",
-                                     style = "font-size:var(--typography-font-size-label)",
-                                     p("Source:",
-                                       "Statistics Canada.", 
-                                       a(href = "https://doi.org/10.25318/1410028701-eng",
-                                         "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
+                                 p(class = "mb-0 source",
+                                   "Source:",
+                                   "Statistics Canada.", 
+                                   a(href = "https://doi.org/10.25318/1410028701-eng",
+                                     "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
                                        )
-                                     )
                                  )
                                )))
                          ),
@@ -213,14 +209,13 @@ ui <- function(req) {
                                  ),
                                  withSpinner(plotlyOutput("age_gender_chart", width = "100%", height = 450)),
                                ),
-                               div(class = "mb-0",
-                                   style = "font-size:var(--typography-font-size-label)",
-                                   p("Source:",
-                                     "Statistics Canada.", 
-                                     a(href = "https://doi.org/10.25318/1410028701-eng",
-                                       "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
+                               p(class = "mb-0 source",
+                                 "Source:",
+                                 "Statistics Canada.", 
+                                 a(href = "https://doi.org/10.25318/1410028701-eng",
+                                   "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
                                      )
-                                   )
+                                   
                                )
                              ))
                          ),
@@ -246,14 +241,12 @@ ui <- function(req) {
                                  withSpinner(plotOutput("hl_reg_map", width = "100%", height = 450))
                                ),
                                # withSpinner(plotOutput("hl_reg_map")),
-                               div(class = "mb-0",
-                                   style = "font-size:var(--typography-font-size-label)",
-                                   p("Source:",
-                                     "Statistics Canada.", 
-                                     a(href = "https://doi.org/10.25318/1410046201-eng",
-                                       "Table 14-10-0462-01  Labour force characteristics by economic region, three-month moving average, unadjusted for seasonality"
+                               p(class = "mb-0 source",
+                                 "Source:",
+                                 "Statistics Canada.", 
+                                 a(href = "https://doi.org/10.25318/1410046201-eng",
+                                   "Table 14-10-0462-01  Labour force characteristics by economic region, three-month moving average, unadjusted for seasonality"
                                      )
-                                   )
                                )
                              ),
                              card(
@@ -273,14 +266,12 @@ ui <- function(req) {
                                  withSpinner(plotOutput("hl_cma_map", width = "100%", height = 450))
                                ),
                                # withSpinner(plotlyOutput("hl_cma_map", width = "100%")),
-                               div(class = "mb-0",
-                                   style = "font-size:var(--typography-font-size-label)",
-                                   p("Source:",
-                                     "Statistics Canada.", 
-                                     a(href = "https://doi.org/10.25318/1410045801-eng",
-                                       "Table 14-10-0458-01  Labour force characteristics by census metropolitan area, three-month moving average, unadjusted for seasonality"
+                               p(class = "mb-0 source",
+                                 "Source:",
+                                 "Statistics Canada.", 
+                                 a(href = "https://doi.org/10.25318/1410045801-eng",
+                                   "Table 14-10-0458-01  Labour force characteristics by census metropolitan area, three-month moving average, unadjusted for seasonality"
                                      )
-                                   )
                                )
                              )
                            ) 
@@ -290,21 +281,35 @@ ui <- function(req) {
                      ### Trends tab ----
                      nav_panel(
                        "Trends",
-                       div(
-                         navset_card_pill(
-                           title = h2("Overall trends"),
-                           id = "hl_ts",
-                           nav_spacer(),
-                           nav_panel("Employment", withSpinner(dygraphOutput("hl_emp_cht"))),
-                           nav_panel("Unemployment rate", withSpinner(dygraphOutput("hl_unemp_cht"))),
-                           nav_panel("Participation rate", withSpinner(dygraphOutput("hl_part_cht"))),
-                           footer = div(
+                       card(
+                         card_header(uiOutput("ts_chart_title")),
+                         card_body(
+                           class = "ps-0",
+                           layout_sidebar(
+                             class = "ps-0",
+                             sidebar = sidebar(
+                               width = 300,
+                               position = "right",
+                               selectInput(
+                                 "ts_selected_indicator",
+                                 "Select indicator",
+                                 choices = c("Employment", "Unemployment rate", "Participation rate"),
+                                 selected = "Unemployment rate")
+                             ),
+                             withSpinner(dygraphOutput("ts_chart"))
+                           ),
+                           div(class = "ps-3",
                              em("Shaded areas indicate Canadian recessions"),
-                             p("To zoom in on dates, move the bottom slider or click and drag your mouse on part of the chart. Double click on the chart to reset."))
-                         ),
-                         
-                         style = "margin-top:1.5rem")
-                       
+                             p("To see values, hover over the chart.", class = "mb-0"),
+                             p("To zoom in, use the slider below the chart or click and drag on the chart. Double-click the chart to reset."),
+                             p(class = "mb-0 source",
+                               "Source:",
+                               "Statistics Canada.",
+                               a(href = "https://doi.org/10.25318/1410028701-eng",
+                                 "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
+                               ))
+                           )
+                         ))
                      ),
                      ### Data tables tab ----
                      nav_panel(
@@ -818,44 +823,71 @@ server <- function(input, output, session) {
   ## Trends tab ----
   
   ### Dygraphs ----
+  output$ts_chart_title <- renderUI({
+    req(input$ts_selected_indicator)
+    
+    units <- case_when(
+      input$ts_selected_indicator == "Employment" ~ "('000)",
+      TRUE ~ "(%)"
+    )
+
+    div(
+      div(class = "mb-1",
+          style = "font:var(--typography-bold-h5)",
+          paste("B.C.", str_to_lower(input$ts_selected_indicator), units)),
+      div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+          "Seasonally adjusted")
+    )
+  })
+  
   tseries <- reactive({
     
-    req(input$hl_ts)
+    req(input$ts_selected_indicator)
     
     vector <- case_when(
-      input$hl_ts == "Unemployment rate" ~ "v2064705",
-      input$hl_ts == "Participation rate" ~ "v2064706",
-      input$hl_ts == "Employment" ~ "v2064701")
+      input$ts_selected_indicator == "Unemployment rate" ~ "v2064705",
+      input$ts_selected_indicator == "Participation rate" ~ "v2064706",
+      input$ts_selected_indicator == "Employment" ~ "v2064701")
 
     data <- get_cansim_vector(vectors = vector,
                               start_time = "1976-01-01") %>%
-      select(REF_DATE, VALUE) %>%
-      mutate(REF_DATE = ymd(REF_DATE))
+      select(Date = REF_DATE, Value = VALUE) %>%
+      mutate(Date = ymd(Date))
 
-  }) %>% bindCache(input$hl_ts)
+  }) %>% bindCache(input$ts_selected_indicator)
   
-  output$hl_unemp_cht <- 
-    output$hl_part_cht <-
-    output$hl_emp_cht <-
-    renderDygraph({
-      
-        data <- tseries()
-        data <- xts(data, order.by = data$REF_DATE)
-        label <- ifelse(str_detect(input$hl_ts, "Rate"),
-                        paste("B.C.", input$hl_ts, "(%)"),
-                        paste("B.C.", input$hl_ts, "('000)"))
-
-        dygraph(data, main = label) %>%
-          dyRangeSelector() %>%
-          dyShading(from = "1980-1-1", to = "1980-6-1") %>%
-          dyShading(from = "1981-6-1", to = "1982-10-1") %>%
-          dyShading(from = "1990-3-1", to = "1991-4-1") %>%
-          dyShading(from = "2008-10-1", to = "2009-5-1") %>%
-          dyShading(from = "2020-3-1", to = "2020-5-1") %>%
-          dyAxis("y") %>%
-          dyOptions(colors = RColorBrewer::brewer.pal(8, "Set2"), drawGrid = FALSE)
-          
-  }) %>% bindCache(input$hl_ts)
+  output$ts_chart <- renderDygraph({
+    
+    req(input$ts_selected_indicator)
+    
+    data <- tseries()
+    data <- xts(data, order.by = data$Date)
+    
+    ## format legend value (add comma or %)
+    value_formatter <- if(input$ts_selected_indicator == "Employment"){
+      JS("function(y) { return Number(y).toLocaleString('en-CA'); }")
+    } else {
+      JS("function(y) { return y + '%'; }")
+    }
+    
+    dygraph(data) %>%
+      dyRangeSelector(fillColor = "#e6f2fd", strokeColor = "#3c8dbc") %>%
+      dyLegend(show = "onmouseover") %>% 
+      dyShading(from = "1980-1-1", to = "1980-6-1") %>%
+      dyShading(from = "1981-6-1", to = "1982-10-1") %>%
+      dyShading(from = "1990-3-1", to = "1991-4-1") %>%
+      dyShading(from = "2008-10-1", to = "2009-5-1") %>%
+      dyShading(from = "2020-3-1", to = "2020-5-1") %>%
+      dyAxis("x", drawGrid = FALSE, axisLineColor = "#000000", axisLineWidth = 2) %>%
+      dyAxis("y", axisLineColor = "#FFFFFF", gridLineWidth = 0.1, valueFormatter = value_formatter) %>%
+      dyHighlight(highlightCircleSize = 5) %>%
+      dyOptions(axisLabelColor = "#666666",
+                axisLabelFontSize = 14,
+                colors = "#3c8dbc", 
+                strokeWidth = 2)
+    
+  }) %>% bindCache(input$ts_selected_indicator)
   
   ## Data tables tab: content ---- 
   
