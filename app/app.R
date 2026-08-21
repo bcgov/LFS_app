@@ -127,6 +127,7 @@ ui <- function(req) {
                      nav_panel(
                        "Monthly comparisons",
                        accordion(
+                         class = "mc-accordion",
                          id = "mc_accordion",
                          accordion_panel(
                            title = h2("Provincial comparisons"),

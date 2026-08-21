@@ -77,6 +77,22 @@ body, h1, h2, h3, h4, h5, h6 {
 }
 
 /* =====================
+   Accordions
+   ===================== */
+   .mc-accordion .accordion-item {
+     border: none;
+   }
+   
+   .mc-accordion .accordion-header {
+     border: var(--bs-accordion-border-width) solid var(--bs-accordion-border-color);
+   }
+   
+   .mc-accordion .accordion-body {
+     padding-left:0;
+     padding-right:0;
+   }
+
+/* =====================
    Source paragraph text
    ===================== */
    p.mb-0.source {
