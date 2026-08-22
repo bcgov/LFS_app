@@ -148,3 +148,12 @@ body, h1, h2, h3, h4, h5, h6 {
     display: block;
   }
 }
+
+
+/* =====================
+   Maps
+   ===================== */
+   .map-plot .shiny-plot-output {
+  height: 60vh !important;
+}
+

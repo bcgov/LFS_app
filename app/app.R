@@ -133,9 +133,9 @@ ui <- function(req) {
                            title = h2("Provincial comparisons"),
                            value = "provincial_comparisons",
                            layout_column_wrap(
-                             width = 1/2,
+                             width = "450px",
+                             fixed_width = FALSE,
                              card(
-                               # full_screen = TRUE,
                                card_header(
                                  div(
                                    div(class = "mb-1",
@@ -157,7 +157,6 @@ ui <- function(req) {
                                  )
                                )),
                              card(
-                               # full_screen = TRUE,
                                card_header(
                                  div(
                                    div(class = "mb-1",
@@ -183,7 +182,6 @@ ui <- function(req) {
                            title = h2("Age and gender"),
                            value = "age_and_gender",
                            card(
-                             # full_screen = TRUE,
                              card_header(uiOutput("ag_chart_title")),
                              card_body(
                                layout_sidebar(
@@ -208,7 +206,7 @@ ui <- function(req) {
                                        c(current, mom, yoy)),
                                      selected = "current")
                                  ),
-                                 withSpinner(plotlyOutput("age_gender_chart", width = "100%", height = 450)),
+                                 withSpinner(plotlyOutput("age_gender_chart", width = "100%", height = 450))
                                ),
                                p(class = "mb-0 source",
                                  "Source:",
@@ -223,10 +221,10 @@ ui <- function(req) {
                          accordion_panel(
                            title = h2("Regional"),
                            value = "regional",
-                           layout_columns(
-                             col_widths = c(6, 6),
+                           layout_column_wrap(
+                             width = "450px",
+                             fixed_width = FALSE,
                              card(
-                               # full_screen = TRUE,
                                card_header(
                                  div(
                                    div(class = "mb-1",
@@ -238,10 +236,9 @@ ui <- function(req) {
                                  )
                                ),
                                div(
-                                 style = "width: 100%; aspect-ratio: 790 / 450;",
-                                 withSpinner(plotOutput("hl_reg_map", width = "100%", height = 450))
+                                 class = "map-plot",
+                                 withSpinner(plotOutput("hl_reg_map"))
                                ),
-                               # withSpinner(plotOutput("hl_reg_map")),
                                p(class = "mb-0 source",
                                  "Source:",
                                  "Statistics Canada.", 
@@ -251,7 +248,6 @@ ui <- function(req) {
                                )
                              ),
                              card(
-                               # full_screen = TRUE,
                                card_header(
                                  div(
                                    div(class = "mb-1",
@@ -263,10 +259,9 @@ ui <- function(req) {
                                  )
                                ),
                                div(
-                                 style = "width: 100%; aspect-ratio: 790 / 450;",
-                                 withSpinner(plotOutput("hl_cma_map", width = "100%", height = 450))
+                                 class = "map-plot",
+                                 withSpinner(plotOutput("hl_cma_map"))
                                ),
-                               # withSpinner(plotlyOutput("hl_cma_map", width = "100%")),
                                p(class = "mb-0 source",
                                  "Source:",
                                  "Statistics Canada.", 
@@ -592,25 +587,70 @@ server <- function(input, output, session) {
       mutate(ref_date = ymd(ref_date)) %>%
       filter(ref_date %in% c(curr_date)) %>%
       left_join(vectors_filt, by = "vector") %>%
-      mutate(text_color = case_when(value > 0.8*max(value) ~ "white",
-                                    TRUE ~ "black"),
-             vjust = case_when(geo == "Kootenay" ~ 1,
-                               TRUE ~ 0.3))
+      mutate()
     
     geo_data <- economic_regions %>%
       left_join(data, by = "geo") %>%
-      mutate(geo_label = str_wrap(str_extract(geo, "^([^,])+"), width = 10))
+      mutate(geo_label = case_when(
+        geo == "Lower Mainland-Southwest" ~ "Lower\nMainland\nSouthwest",
+        geo == "North Coast and Nechako" ~ "North\nCoast and\nNechako",
+        geo == "Thompson-Okanagan" ~ "Thompson\nOkanagan",
+        geo == "Vancouver Island and Coast" ~ "Vancouver\nIsland\nand Coast",
+        TRUE ~ geo
+        ),
+        nudge_x = case_when(
+          geo == "North Coast and Nechako" ~ -4e4,
+          geo == "Northeast" ~ 2e4,
+          geo == "Vancouver Island and Coast" ~ -25e4,
+          geo == "Lower Mainland-Southwest" ~ 14e4,
+          geo == "Kootenay" ~ -1e4,
+          geo == "Cariboo" ~ -8e4,
+          TRUE ~ 0),
+        nudge_y = case_when(
+          geo == "North Coast and Nechako" ~ 20e4,
+          geo == "Northeast" ~ 1e4,
+          geo == "Vancouver Island and Coast" ~ -10e4,
+          geo == "Lower Mainland-Southwest" ~ -20e4,
+          geo == "Kootenay" ~ -8e4,
+          geo == "Cariboo" ~ -7e4,
+          TRUE ~ 0),
+        text_color = case_when(
+          geo %in% c("Vancouver Island and Coast", "Lower Mainland-Southwest") ~ "black",
+          value > 0.9*max(value) ~ "white",
+          TRUE ~ "black")
+        )
     
     ggplot() +
       geom_sf(data = geo_data, aes(fill = value), colour = "dark grey", lwd = 0.5) +
-      geom_sf_text(data = geo_data, aes(label = geo_label, color = text_color, vjust = vjust), size = 5, lineheight = 0.9, fontface = "bold") +
+      geom_sf_text(
+        data = geo_data, 
+        aes(
+          label = geo_label,
+          color = text_color, 
+          nudge_x = nudge_x,
+          nudge_y = nudge_y
+          ), 
+        size = 5, 
+        lineheight = 0.9,
+        fontface = "bold") +
+      coord_sf(clip = "off") +
       labs(x = NULL, y = NULL) +
-      scale_fill_viridis(name = "Unemployment\nRate (%)", direction = -1, breaks = breaks_pretty(n = 5)) +
-      scale_color_manual(values = c("white" = "white", "black" = "black"))+
+      scale_fill_viridis(
+        name = "Unemployment Rate (%)", 
+        direction = -1, 
+        breaks = breaks_pretty(n = 5),
+        guide = guide_colorbar(
+          title.position = "top",
+          barwidth = unit(1.5, "strwidth", "Unemployment Rate (%)") ## make width of bar match title width
+        )) +
+      scale_color_manual(values = c("white" = "#ddd", "black" = "black"))+
       guides(color = "none") +
       theme_minimal() +
       theme(
-        text = element_text(size = 16, family = "BCSans"),
+        legend.position = "bottom",
+        legend.title = element_text(hjust = 0.5),
+        legend.box.margin = margin(t = 30),
+        text = element_text(size = 16, family = "BC Sans"),
         plot.caption = element_text(hjust = 0.5),
         panel.grid.major = element_line(colour = "transparent"),
         axis.text = element_blank(),
@@ -741,13 +781,18 @@ server <- function(input, output, session) {
         clip = "off"
       ) +
       scale_fill_viridis(
-        name = "Unemployment\nRate (%)", 
+        name = "Unemployment Rate (%)", 
         direction = -1, 
-        breaks = breaks_pretty(n = 5)
-        ) +
+        breaks = breaks_pretty(n = 5),
+        guide = guide_colorbar(
+          title.position = "top",
+          barwidth = unit(1.5, "strwidth", "Unemployment Rate (%)") ## make width of bar match title width
+        )) +
       theme_void() +
       theme(
-        legend.box.margin = margin(l = 50),
+        legend.title = element_text(hjust = 0.5),
+        legend.position = "bottom",
+        legend.box.margin = margin(t = 50),
         text = element_text(size = 16, family = "BC Sans"),
         plot.margin = margin(l = 10, t = 30, r = 10, b = 30)
       )
