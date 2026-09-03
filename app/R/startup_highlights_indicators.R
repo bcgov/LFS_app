@@ -1,0 +1,237 @@
+# Copyright 2026 Province of British Columbia
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at 
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Define indicators ----
+
+## groups defined as:
+## 1 - units = thousands,
+## 2 - units = %/ppts,
+## 3 - units = $
+
+## change_thresholds for key_indicator_table
+change_thresholds <- tribble(
+  ~label, ~change_threshold,
+  "Population", 1000,
+  "Labour force", 1000,
+  "Not in labour force", 1000,
+  "Employment", 1000,
+  "Unemployment", 1000,
+  "Full-time employment", 1000,
+  "Part-time employment", 1000,
+  "Private sector employment", 1000,
+  "Goods sector employment", 1000, 
+  "Indigenous employment", 500, 
+  "Immigrant employment", 500, 
+  "Unemployment rate", 0, 
+  "Participation rate", 0,
+  "Employment rate", 0,
+  "Core age employment rate", 0, 
+  "Average hourly wages", 0.1 
+)
+
+## Key indicators ----
+key_indicators_vectors <- tribble(
+  ~group, ~label, ~vector, 
+  # Table 14-10-0287-01: Labour force characteristics by sex and age group, annual
+  1, "Employment", "v2064701", # Employment, BC, 15 years and over
+  1, "Full-time employment", "v2064702", # Full-time employment, BC, 15 years and over
+  
+  # Table 14-10-0288-01: Employment by public and private sectors
+  1, "Private sector employment", "v2067020", # BC private sector employment
+  
+  # Table 14-10-0355-01: Employment by industry, goods and services
+  1, "Goods sector employment", "v2057794", # Goods industries employment BC 15+ both (goods-producing sector, Seasonally Adjusted)
+  
+  # Table 14-10-0401: Employment by Indigenous identity and age group
+  1, "Indigenous employment", "v1411942612", # BC indigenous population employment 15+ both
+  
+  # Table 14-10-0471-01: Employment by immigrant status
+  1, "Immigrant employment", "v1642915778", # BC immigrants (10+ yrs) employment, 15+
+  
+  # Table 14-10-0287-01: Labour force characteristics by sex and age group, annual
+  2, "Unemployment rate", "v2064705", # Unemployment rate, BC, 15 years and over
+  2, "Participation rate", "v2064706", # Participation rate, BC, 15 years and over
+  
+  # Table 14-10-0287-01 (continued)
+  2, "Core age employment rate", "v2064842", # BC employment rate, 25-54, both, Seasonally Adjusted
+  
+  # Table 14-10-0063: Average hourly wages of employees by industry
+  3, "Average hourly wages", "v2166779" # Total average hourly earnings
+)
+
+## Labour force characteristics ----
+lf_characteristics_vectors <- tribble(
+  ~group, ~label, ~vector,
+  1, "Population", "v2064699",
+  1, "Labour force", "v2064700",
+  1, "Employment", "v2064701",
+  1, "Full-time employment", "v2064702",
+  1, "Part-time employment", "v2064703",
+  1, "Unemployment", "v2064704",
+  1, "Not in labour force", "1",  ## this is a calculated value, use a fake vector number
+  2, "Unemployment rate", "v2064705",
+  2, "Employment rate", "v2064707",
+  2, "Participation rate", "v2064706"
+)
+
+## Combine ----
+vector_list <- bind_rows(
+  key_indicators_vectors,
+  lf_characteristics_vectors
+) %>%
+  distinct()
+
+# Download the latest data from cansim ----
+
+## if error connecting to cansim, app will display a "temporarily unavailable" message instead of crashing
+cansim_error <<- FALSE
+cansim_data <- tryCatch(
+ {
+    ## Download the data
+   ## (13 periods = 12 months + 1)
+    left_join(
+      vector_list,
+      get_cansim_vector_for_latest_periods(
+        vectors = vector_list$vector,
+        periods = 13) %>%
+        clean_names(),
+      by = "vector"
+    )
+  },
+  error = function(e) {
+    cansim_error <<- TRUE
+    NULL
+  }
+)
+
+if(!cansim_error) {
+  
+  # Create Not in labour force
+  not_in_lf <- cansim_data %>% 
+    filter(label %in% c("Population", "Labour force")) %>%
+    select(label, ref_date, value) %>%
+    pivot_wider(names_from = label, values_from = value) %>%
+    mutate(value = Population - `Labour force`,
+           label = "Not in labour force") %>%
+    select(label, ref_date, value) %>%
+    left_join(lf_characteristics_vectors, by = "label")
+
+# Calculate stats ----
+indicator_stats <- bind_rows(
+  cansim_data %>% filter(label != "Not in labour force"),
+  not_in_lf) %>%
+  mutate(ref_date = ymd(ref_date),
+         date = case_when(ref_date == max(ref_date) ~ "current",
+                          ref_date == max(ref_date) - months(1) ~ "previous_month",
+                          ref_date == max(ref_date) - years(1) ~ "previous_year")) %>%
+  select(vector, group, label, date, value) %>%
+  filter(!is.na(date)) %>%
+  pivot_wider(names_from = date, values_from = value) %>%
+  ## multiply values by 1 or 1000 (if in group 1)
+  mutate(
+    mom_change = round_half_up(current - previous_month, digits = 2) * (1 + 999 * (group == 1)),
+    yoy_change = round_half_up(current - previous_year, digits = 2) * (1 + 999 * (group == 1)),
+    mom_pct_change = case_when(
+      str_detect(label, "rate") ~ NA,
+      TRUE ~ (current - previous_month)/ previous_month), ## format on output
+    yoy_pct_change = case_when(
+      str_detect(label, "rate") ~ NA,
+      TRUE ~ (current - previous_year)/ previous_year)
+  )
+
+# Assign arrows and colours ----
+indicator_stats_fmtd <- indicator_stats %>%
+  left_join(change_thresholds, by = "label") %>%
+  mutate(
+    mom_arrow = case_when(
+      abs(mom_change) >= change_threshold & mom_change > 0 ~ "up-long",
+      abs(mom_change) >= change_threshold & mom_change < 0 ~ "down-long",
+      TRUE ~ "minus",
+      
+    ),
+    # yoy_arrow = case_when(
+    #   yoy_change > 0 ~ "up-long",
+    #   yoy_change == 0 ~ "minus",
+    #   yoy_change < 0 ~ "down-long"
+    # ),
+    
+    ## multiply values by 1 or -1 (if Unemployment rate)
+    mom_color = case_when(
+      mom_arrow == "up-long" & label == "Unemployment rate" ~ "#C00000",
+      mom_arrow == "down-long" & label == "Unemployment rate"  ~ "#00B050",
+      mom_arrow == "up-long" & label != "Unemployment rate" ~ "#00B050",
+      mom_arrow == "down-long" & label != "Unemployment rate"~ "#C00000",
+      # (1 - 2 * (label == "Unemployment rate")) * mom_change > 0 ~ "#00B050",
+      # (1 - 2 * (label == "Unemployment rate")) * mom_change < 0 ~ "#C00000",
+      TRUE ~ "#1d1d1d"
+    )#,
+    # yoy_color = case_when(
+    #   (1 - 2 * (label == "Unemployment rate")) * yoy_change > 0 ~ "#00B050",
+    #   (1 - 2 * (label == "Unemployment rate")) * yoy_change < 0 ~ "#C00000",
+    #   TRUE ~ "#1d1d1d"
+    # )
+  )
+
+# Separate vectors and additional formatting ----
+
+## KI specific formatting ----
+## filter only key indicator vectors
+key_indicators <- semi_join(
+  indicator_stats_fmtd,
+  key_indicators_vectors,
+  by = "vector"
+) %>%
+  mutate(label = factor(label, levels = key_indicators_vectors$label)) %>%
+  arrange(label) %>%
+  mutate(
+    label = case_when(
+      group == 1 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:10px'>", prettyNum(current, big.mark = ","), " thousand</span>"),
+      group == 2 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>", current, " per cent</span>"),
+      group == 3 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>$", current, "/hr</span>")
+    ),
+    label_order = row_number()
+  ) %>% 
+  ## max values for bar chart proportioning
+  mutate(
+    bar_max_chg = max(abs(mom_change), abs(yoy_change)),
+    .by = group
+  ) %>%
+  mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
+  select(group, label_order, label, arrow = mom_arrow, color = mom_color, mom_change, 
+         yoy_change, yoy_pct_change, starts_with("bar_max"))
+
+
+## LF specific formatting ----
+lf_characteristics <- semi_join(
+  indicator_stats_fmtd,
+  lf_characteristics_vectors,
+  by = "vector"
+) %>%
+  ## label factor order
+  mutate(label = factor(label, levels = lf_characteristics_vectors$label)) %>%
+  arrange(label) %>%
+  mutate(label_order = row_number()) %>%
+  ## max values for bar chart proportioning
+  mutate(
+    bar_max_est = max(current),
+    bar_max_chg = max(abs(mom_change), abs(yoy_change)),
+    .by = group
+  ) %>%
+  mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
+  arrange(label) %>%
+  select(group, label_order, label, everything())
+}
+
+
+

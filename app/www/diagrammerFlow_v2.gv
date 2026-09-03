@@ -1,28 +1,24 @@
-digraph graph1 {
+digraph graph2 {
   # styles
-  graph[style = invis, splines = ortho]
-  node [shape = box style=rounded color = '#3c8dbc' fontname = "BC Sans"  width = 2 height = 1.1]
+  graph[style = invis, rankdir = LR, splines = ortho]
+  node [shape = box style=rounded color = '#3c8dbc' fontname = "BC Sans" width = 2 height = 1.1]
   edge [arrowsize=0.7, color = '#3c8dbc']
 
   # node definitions with substituted label text
   a [label = '@@1']
-  e [label = '@@5']
   b [label = '@@2']
-  d [label = '@@4']
   c [label = '@@3']
-  
-  # Invisible nodes to create right angle 
-  x1 [shape = point, width = 0, height = 0, label = "", style = invis]
-  x2 [shape = point, width = 0, height = 0, label = "", style = invis]
+  d [label = '@@4']
+  e [label = '@@5']
 
   # node connections
-  x1 -> a -> x2 [arrowhead = none]
-  x1 -> e
-  x2 -> b
-  b -> {d c}
-  
+  a -> {b e} [minlen = 2]
+  b -> {c d} [minlen = 2]
+  e -> d [style = invis]
+
   # vertical alignment
-  { rank = same; a; x1; x2  }
+  { rank = same; b; e  }
+  { rank = same; c; d  }
 
 }
 
