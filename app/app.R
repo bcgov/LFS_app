@@ -406,7 +406,13 @@ server <- function(input, output, session) {
   ### LFC table ----
   output$lf_characteristics_table <- renderReactable({
     
-    table <- create_reactable(lf_characteristics, ref_date = formatted_date, pos_fill = "#1F497D", neg_fill = "#D4D4D4")
+    table <- create_reactable(
+      lf_characteristics, 
+      ref_date = formatted_date, 
+      pos_fill = "#1F497D",
+      neg_fill = "#D4D4D4",
+      rev_unemp = FALSE
+    )
     
   })
   
