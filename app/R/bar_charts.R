@@ -3,7 +3,8 @@
 prov_colors <- c("#FFC000","#1F497D", rep("#4F81BD",9))
 names(prov_colors) = c("CA", "BC", "NL", "PEI", "NS", "NB", "QC", "ON", "MN", "SK", "AB")
 
-province_bar_chart <- function(df, x_axis_type = "number") {
+## df must have columns: value, province, color, label
+province_bar_chart <- function(df, x_axis_type = "number", width = NULL, height = NULL) {
   
   # Set x-axis range based on the data
   if (x_axis_type == "number") {
@@ -75,7 +76,7 @@ province_bar_chart <- function(df, x_axis_type = "number") {
       showlegend = FALSE,
       bargap = 0.25
     ) %>%
-    plotly_config()
+    plotly_config(width, height)
 }
 
 
@@ -115,7 +116,7 @@ bar_chart_1 <- function(){
     arrange(desc(value)) %>%
     mutate(province = fct_inorder(province))
   
-  province_bar_chart(df)
+  province_bar_chart(df, width = 550, height = 515)
 }
 
 ## Unemployment rate for Canada and Provinces (15 years and over; seasonally adjusted)
@@ -150,7 +151,7 @@ bar_chart_2 <- function(){
     arrange(value, province) %>%
     mutate(province = fct_inorder(province))
   
-  province_bar_chart(df, x_axis_type = "percent")
+  province_bar_chart(df, x_axis_type = "percent", width = 350, height = 515)
   
 }
 
@@ -323,7 +324,7 @@ age_group_bar_chart <- function(df) {
     plotly_config()
 }
 
-plotly_config <- function(plot) {
+plotly_config <- function(plot, width = NULL, height = NULL) {
   plot %>%
     config(
       displayModeBar = TRUE,
@@ -337,7 +338,15 @@ plotly_config <- function(plot) {
         "hoverClosestCartesian", "hoverCompareCartesian",
         # Geo: zoomInGeo, zoomOutGeo, resetGeo, hoverClosestGeo
         "hoverClosestGl2d", "hoverClosestPie", "toggleHover", "resetViews", "sendDataToCloud", "toggleSpikelines", "resetViewMapbox"
+      ),
+      toImageButtonOptions = list(
+        format = "png",
+        filename = "newplot",
+        width = width,
+        height = height,
+        scale = 2
       )
-    )
+    ) 
+    
 }
 
