@@ -85,7 +85,7 @@ lf_characteristics_vectors <- tribble(
   2, "Participation rate", "v2064706"
 )
 
-## Combine ----
+### Combine key indicator and lf characteristics ----
 vector_list <- bind_rows(
   key_indicators_vectors,
   lf_characteristics_vectors
@@ -126,112 +126,97 @@ if(!cansim_error) {
            label = "Not in labour force") %>%
     select(label, ref_date, value) %>%
     left_join(lf_characteristics_vectors, by = "label")
-
-# Calculate stats ----
-indicator_stats <- bind_rows(
-  cansim_data %>% filter(label != "Not in labour force"),
-  not_in_lf) %>%
-  mutate(ref_date = ymd(ref_date),
-         date = case_when(ref_date == max(ref_date) ~ "current",
-                          ref_date == max(ref_date) - months(1) ~ "previous_month",
-                          ref_date == max(ref_date) - years(1) ~ "previous_year")) %>%
-  select(vector, group, label, date, value) %>%
-  filter(!is.na(date)) %>%
-  pivot_wider(names_from = date, values_from = value) %>%
-  ## multiply values by 1 or 1000 (if in group 1)
-  mutate(
-    mom_change = round_half_up(current - previous_month, digits = 2) * (1 + 999 * (group == 1)),
-    yoy_change = round_half_up(current - previous_year, digits = 2) * (1 + 999 * (group == 1)),
-    mom_pct_change = case_when(
-      str_detect(label, "rate") ~ NA,
-      TRUE ~ (current - previous_month)/ previous_month), ## format on output
-    yoy_pct_change = case_when(
-      str_detect(label, "rate") ~ NA,
-      TRUE ~ (current - previous_year)/ previous_year)
-  )
-
-# Assign arrows and colours ----
-indicator_stats_fmtd <- indicator_stats %>%
-  left_join(change_thresholds, by = "label") %>%
-  mutate(
-    mom_arrow = case_when(
-      abs(mom_change) >= change_threshold & mom_change > 0 ~ "up-long",
-      abs(mom_change) >= change_threshold & mom_change < 0 ~ "down-long",
-      TRUE ~ "minus",
+  
+  # Calculate stats ----
+  indicator_stats <- bind_rows(
+    cansim_data %>% filter(label != "Not in labour force"),
+    not_in_lf) %>%
+    mutate(ref_date = ymd(ref_date),
+           date = case_when(ref_date == max(ref_date) ~ "current",
+                            ref_date == max(ref_date) - months(1) ~ "previous_month",
+                            ref_date == max(ref_date) - years(1) ~ "previous_year")) %>%
+    select(vector, group, label, date, value) %>%
+    filter(!is.na(date)) %>%
+    pivot_wider(names_from = date, values_from = value) %>%
+    ## multiply values by 1 or 1000 (if in group 1)
+    mutate(
+      mom_change = round_half_up(current - previous_month, digits = 2) * (1 + 999 * (group == 1)),
+      yoy_change = round_half_up(current - previous_year, digits = 2) * (1 + 999 * (group == 1)),
+      mom_pct_change = case_when(
+        str_detect(label, "rate") ~ NA,
+        TRUE ~ (current - previous_month)/ previous_month), ## format on output
+      yoy_pct_change = case_when(
+        str_detect(label, "rate") ~ NA,
+        TRUE ~ (current - previous_year)/ previous_year)
+    )
+  
+  # Assign arrows and colours ----
+  indicator_stats_fmtd <- indicator_stats %>%
+    left_join(change_thresholds, by = "label") %>%
+    mutate(
+      mom_arrow = case_when(
+        abs(mom_change) >= change_threshold & mom_change > 0 ~ "up-long",
+        abs(mom_change) >= change_threshold & mom_change < 0 ~ "down-long",
+        TRUE ~ "minus",
+        
+      ),
       
-    ),
-    # yoy_arrow = case_when(
-    #   yoy_change > 0 ~ "up-long",
-    #   yoy_change == 0 ~ "minus",
-    #   yoy_change < 0 ~ "down-long"
-    # ),
-    
-    ## multiply values by 1 or -1 (if Unemployment rate)
-    mom_color = case_when(
-      mom_arrow == "up-long" & label == "Unemployment rate" ~ "#C00000",
-      mom_arrow == "down-long" & label == "Unemployment rate"  ~ "#00B050",
-      mom_arrow == "up-long" & label != "Unemployment rate" ~ "#00B050",
-      mom_arrow == "down-long" & label != "Unemployment rate"~ "#C00000",
-      # (1 - 2 * (label == "Unemployment rate")) * mom_change > 0 ~ "#00B050",
-      # (1 - 2 * (label == "Unemployment rate")) * mom_change < 0 ~ "#C00000",
-      TRUE ~ "#1d1d1d"
-    )#,
-    # yoy_color = case_when(
-    #   (1 - 2 * (label == "Unemployment rate")) * yoy_change > 0 ~ "#00B050",
-    #   (1 - 2 * (label == "Unemployment rate")) * yoy_change < 0 ~ "#C00000",
-    #   TRUE ~ "#1d1d1d"
-    # )
-  )
-
-# Separate vectors and additional formatting ----
-
-## KI specific formatting ----
-## filter only key indicator vectors
-key_indicators <- semi_join(
-  indicator_stats_fmtd,
-  key_indicators_vectors,
-  by = "vector"
-) %>%
-  mutate(label = factor(label, levels = key_indicators_vectors$label)) %>%
-  arrange(label) %>%
-  mutate(
-    label = case_when(
-      group == 1 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:10px'>", prettyNum(current, big.mark = ","), " thousand</span>"),
-      group == 2 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>", current, " per cent</span>"),
-      group == 3 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>$", current, "/hr</span>")
-    ),
-    label_order = row_number()
-  ) %>% 
-  ## max values for bar chart proportioning
-  mutate(
-    bar_max_chg = max(abs(mom_change), abs(yoy_change)),
-    .by = group
+      ## multiply values by 1 or -1 (if Unemployment rate)
+      mom_color = case_when(
+        mom_arrow == "up-long" & label == "Unemployment rate" ~ "#C00000",
+        mom_arrow == "down-long" & label == "Unemployment rate"  ~ "#00B050",
+        mom_arrow == "up-long" & label != "Unemployment rate" ~ "#00B050",
+        mom_arrow == "down-long" & label != "Unemployment rate"~ "#C00000",
+        TRUE ~ "#1d1d1d"
+      )
+    )
+  
+  # Separate vectors and additional formatting ----
+  
+  ## KI specific formatting ----
+  ## filter only key indicator vectors
+  key_indicators <- semi_join(
+    indicator_stats_fmtd,
+    key_indicators_vectors,
+    by = "vector"
   ) %>%
-  mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
-  select(group, label_order, label, arrow = mom_arrow, color = mom_color, mom_change, 
-         yoy_change, yoy_pct_change, starts_with("bar_max"))
-
-
-## LF specific formatting ----
-lf_characteristics <- semi_join(
-  indicator_stats_fmtd,
-  lf_characteristics_vectors,
-  by = "vector"
-) %>%
-  ## label factor order
-  mutate(label = factor(label, levels = lf_characteristics_vectors$label)) %>%
-  arrange(label) %>%
-  mutate(label_order = row_number()) %>%
-  ## max values for bar chart proportioning
-  mutate(
-    bar_max_est = max(current),
-    bar_max_chg = max(abs(mom_change), abs(yoy_change)),
-    .by = group
+    mutate(label = factor(label, levels = key_indicators_vectors$label)) %>%
+    arrange(label) %>%
+    mutate(
+      label = case_when(
+        group == 1 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:10px'>", prettyNum(current, big.mark = ","), " thousand</span>"),
+        group == 2 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>", current, " per cent</span>"),
+        group == 3 ~ paste0("<strong>", label, "</strong><br><span style = 'padding-left:20px'>$", current, "/hr</span>")
+      ),
+      label_order = row_number()
+    ) %>% 
+    ## max values for bar chart proportioning
+    mutate(
+      bar_max_chg = max(abs(mom_change), abs(yoy_change)),
+      .by = group
+    ) %>%
+    mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
+    select(group, label_order, label, arrow = mom_arrow, color = mom_color, mom_change, 
+           yoy_change, yoy_pct_change, starts_with("bar_max"))
+  
+  ## LF specific formatting ----
+  lf_characteristics <- semi_join(
+    indicator_stats_fmtd,
+    lf_characteristics_vectors,
+    by = "vector"
   ) %>%
-  mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
-  arrange(label) %>%
-  select(group, label_order, label, everything())
+    ## label factor order
+    mutate(label = factor(label, levels = lf_characteristics_vectors$label)) %>%
+    arrange(label) %>%
+    mutate(label_order = row_number()) %>%
+    ## max values for bar chart proportioning
+    mutate(
+      bar_max_est = max(current),
+      bar_max_chg = max(abs(mom_change), abs(yoy_change)),
+      .by = group
+    ) %>%
+    mutate(bar_max_pct = max(abs(yoy_pct_change), na.rm = TRUE)) %>%
+    arrange(label) %>%
+    select(group, label_order, label, everything())
 }
-
-
 
