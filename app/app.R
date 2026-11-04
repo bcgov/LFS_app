@@ -38,6 +38,7 @@ ui <- function(req) {
           htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "BC_Sans.css"),  ## set up BC Sans fonts
           htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "variables.css"),## bcgov design tokens
           htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),   ## custom styles
+          htmltools::tags$link(rel = "stylesheet", type = "text/css", href = "colours.css"),   ## industry colours
           htmltools::tags$link(rel = "shortcut icon", href = "favicon.png"),  ## add BCGov favicon
           if(google_tracking){  htmltools::includeHTML("www/google-analytics.html") }  ## to add GA tracking code (see global.R for more details)
         ),
@@ -186,7 +187,7 @@ ui <- function(req) {
                              card_body(
                                layout_sidebar(
                                  sidebar = sidebar(
-                                   width = 300,
+                                   width = 350,
                                    position = "right",
                                    selectInput(
                                      "ag_selected_indicator",
@@ -271,6 +272,42 @@ ui <- function(req) {
                                )
                              )
                            ) 
+                         ),
+                         accordion_panel(
+                           title = h2("Industry"),
+                           value = "industry",
+                           card(
+                             card_header(uiOutput("ind_category_title")),
+                             card_body(
+                               layout_sidebar(
+                                 sidebar = sidebar(
+                                   width = 350,
+                                   position = "right",
+                                   selectInput(
+                                     "ind_selected_order",
+                                     "Select sort order",
+                                     choices = c("Ascending", "Descending"),
+                                     selected = "Descending"),
+                                   radioButtons(
+                                     "ind_selected_value",
+                                     label = NULL,
+                                     choices = setNames(
+                                       c("current", "mom", "yoy"),
+                                       c(current, mom, yoy)),
+                                     selected = "current")
+                                 ),
+                                 withSpinner(plotlyOutput("ind_category_chart", width = "100%", height = 450))
+                               ),
+                               p(class = "mb-0 source",
+                                 "Source:",
+                                 "St
+                                 atistics Canada.", 
+                                 a(href = "https://doi.org/10.25318/1410035501-eng",
+                                   "Table 14-10-0355-01  Employment by industry, monthly, seasonally adjusted and unadjusted, and trend-cycle, last 5 months (x 1,000)"
+                                 )
+                                 
+                               )
+                             ))
                          )
                        )      
                      ),
@@ -284,7 +321,7 @@ ui <- function(req) {
                            layout_sidebar(
                              class = "ps-0",
                              sidebar = sidebar(
-                               width = 300,
+                               width = 450,
                                position = "right",
                                selectInput(
                                  "ts_selected_indicator",
@@ -305,7 +342,156 @@ ui <- function(req) {
                                  "Table 14-10-0287-03  Labour force characteristics by province, monthly, seasonally adjusted"
                                ))
                            )
-                         ))
+                         )),
+                       card(class = "mt-4",
+                         card_header(
+                           div(
+                             div(class = "mb-1",
+                                 style = "font:var(--typography-bold-h5)",
+                                 "Industry category trends by employment ('000)"),
+                             div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+                                 "Seasonally adjusted")
+                           )
+                         ),
+                         card_body(
+                           class = "ps-0",
+                           layout_sidebar(
+                             class = "ps-0",
+                             sidebar = sidebar(
+                               width = 450,
+                               position = "right",
+                               checkboxGroupInput(
+                                 "ts_selected_industry",
+                                 "Select industries",
+                                 choiceNames = lapply(
+                                   str_replace( ## add bold tags to sectors
+                                     industry_vectors$Industry,
+                                     "^(BC total \\(all industries\\)|Goods-producing sector|Services-producing sector)$",
+                                     "<b>\\1</b>"
+                                   ),
+                                   HTML
+                                 ),
+                                 choiceValues = industry_vectors$Industry,
+                                 selected = c(
+                                   "BC total (all industries)",
+                                   "Goods-producing sector",
+                                   "Services-producing sector"
+                                 )),
+                               actionButton("reset_industry", "Reset industries")
+                             ),
+                              withSpinner(dygraphOutput("ind_trends_chart"))
+                           ),
+                           div(class = "ps-3",
+                           p(class = "mb-0 source",
+                             "Source:",
+                             "Statistics Canada.", 
+                             a(href = "https://doi.org/10.25318/1410035501-eng",
+                               "Table 14-10-0355-01  Employment by industry, monthly, seasonally adjusted and unadjusted, and trend-cycle, last 5 months (x 1,000)"
+                             )
+                           ))
+                         )),
+                       card(class = "mt-4",
+                             card_header(uiOutput("ind_trends_gs_title")),
+                             card_body(
+                               class = "ps-0",
+                               layout_sidebar(
+                                 class = "ps-0",
+                                 sidebar = sidebar(
+                                   width = 450,
+                                   position = "right",
+                                   radioButtons(
+                                     "ind_trends_gs_value",
+                                     label = NULL,
+                                     choices = c("Year-over-year change" = "yoy_change",
+                                                 "Month-over-month changes" = "mom_change"),
+                                     selected = "yoy_change"),
+                                   checkboxGroupInput(
+                                     "ind_trends_gs_sector",
+                                     label = "Select sectors",
+                                     choices = c("Goods-producing sector",
+                                                 "Services-producing sector"),
+                                     selected = c("Goods-producing sector",
+                                                  "Services-producing sector")
+                                   ),
+                                   actionButton("reset_gs_sector", "Reset sectors")
+                                 ),
+                                 withSpinner(plotlyOutput("ind_sector_chart"))
+                               ),
+                               p(class = "ps-3 mb-0 source",
+                                 "Source:",
+                                 "Statistics Canada.", 
+                                 a(href = "https://doi.org/10.25318/1410035501-eng",
+                                   "Table 14-10-0355-01  Employment by industry, monthly, seasonally adjusted and unadjusted, and trend-cycle, last 5 months (x 1,000)"
+                                 )
+                               )
+                             )),
+                           card(class = "mt-4",
+                             card_header(uiOutput("ind_trends_g_title")),
+                             card_body(
+                               class = "ps-0",
+                               layout_sidebar(
+                                 class = "ps-0",
+                                 sidebar = sidebar(
+                                   width = 450,
+                                   position = "right",
+                                   radioButtons(
+                                     "ind_trends_g_value",
+                                     label = NULL,
+                                     choices = c("Year-over-year change" = "yoy_change",
+                                                 "Month-over-month changes" = "mom_change"),
+                                     selected = "yoy_change"),
+                                   checkboxGroupInput(
+                                     "ind_trends_g_sector",
+                                     label = "Select industries",
+                                     choices = industry_vectors$Industry[industry_vectors$Sector == "Goods"],
+                                     selected = industry_vectors$Industry[industry_vectors$Sector == "Goods"]
+                                   ),
+                                   actionButton("reset_g_sector", "Reset industries")
+                                 ),
+                                 withSpinner(plotlyOutput("ind_goods_chart"))
+                                ),
+                               p(class = "ps-3 mb-0 source",
+                                 "Source:",
+                                 "Statistics Canada.", 
+                                 a(href = "https://doi.org/10.25318/1410035501-eng",
+                                   "Table 14-10-0355-01  Employment by industry, monthly, seasonally adjusted and unadjusted, and trend-cycle, last 5 months (x 1,000)"
+                                 )
+                               )
+                             )),
+                       card(class = "mt-4",
+                            card_header(uiOutput("ind_trends_s_title")),
+                            card_body(
+                              class = "ps-0",
+                              layout_sidebar(
+                                class = "ps-0",
+                                sidebar = sidebar(
+                                  width = 450,
+                                  position = "right",
+                                  radioButtons(
+                                    "ind_trends_s_value",
+                                    label = NULL,
+                                    choices = c("Year-over-year change" = "yoy_change",
+                                                "Month-over-month changes" = "mom_change"),
+                                    selected = "yoy_change"),
+                                  checkboxGroupInput(
+                                    "ind_trends_s_sector",
+                                    label = "Select industries",
+                                    choices = industry_vectors$Industry[industry_vectors$Sector == "Services"],
+                                    selected = industry_vectors$Industry[industry_vectors$Sector == "Services"]
+                                  ),
+                                  actionButton("reset_s_sector", "Reset industries")
+                                ),
+                                withSpinner(plotlyOutput("ind_services_chart"))
+                              ),
+                              p(class = "ps-3 mb-0 source",
+                                "Source:",
+                                "Statistics Canada.", 
+                                a(href = "https://doi.org/10.25318/1410035501-eng",
+                                  "Table 14-10-0355-01  Employment by industry, monthly, seasonally adjusted and unadjusted, and trend-cycle, last 5 months (x 1,000)"
+                                )
+                              )
+                            ))
                      ),
                      ### Data tables tab ----
                      nav_panel(
@@ -871,6 +1057,54 @@ server <- function(input, output, session) {
   #     )
   #   
   # })
+  
+  
+  ### Industry charts ----
+  output$ind_category_title <- renderUI({
+    
+    req(input$ind_selected_value)
+
+    subtitle <- case_when(
+      input$ind_selected_value == "current" ~ current,
+      input$ind_selected_value == "mom" ~ mom,
+      input$ind_selected_value == "yoy" ~ yoy
+    )
+    
+    units <- case_when(
+      input$ind_selected_value == "current" ~ "('000)",
+      TRUE ~ "(%)"
+    )
+    
+    div(
+      div(class = "mb-1",
+          style = "font:var(--typography-bold-h5)",
+          paste("Industry category ranking by employment", units),
+      div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+          paste0(subtitle, ", seasonally adjusted"))
+    ))
+    
+  })
+  
+  ind_category_reactive <- reactive({
+    
+    req(input$ind_selected_order)
+    req(input$ind_selected_value)
+    
+    args <- list(
+      order = input$ind_selected_order,
+      comparator_type = input$ind_selected_value
+    )
+    
+  }) %>% bindCache(input$ind_selected_order, input$ind_selected_value)
+  
+  output$ind_category_chart <- renderPlotly({
+    args <- ind_category_reactive()
+    p <- do.call(bar_chart_4, args)
+    p
+  })
+  
+  
   # 
   ## Trends tab ----
   
@@ -940,6 +1174,227 @@ server <- function(input, output, session) {
                 strokeWidth = 2)
     
   }) %>% bindCache(input$ts_selected_indicator)
+  
+  ### Industry charts ----
+  tseries_ind <- reactive({
+    
+    req(input$ts_selected_industry)
+    
+    industry_data %>% filter(Industry %in% input$ts_selected_industry)
+
+  }) %>% bindCache(input$ts_selected_industry)
+  
+  output$ind_trends_chart <- renderDygraph({
+
+    data <- tseries_ind()
+    data_wide <- data %>% pivot_wider(names_from = "Industry", values_from = "value")
+    data_xts <- xts(data_wide[-1], order.by = data_wide$Date)
+    
+    ## chart colors
+    colors <- industry_colors %>% filter(Industry %in% data$Industry)
+    
+    ## chart inital x-axis limits
+    limits <- c(max(data$Date) - years(5), max(data$Date))
+
+    ## format legend value (add comma or %)
+    value_formatter <- JS("function(y) { return Number(y).toLocaleString('en-CA'); }")
+    
+    dygraph(data_xts) %>%
+      dyRangeSelector(fillColor = "#e6f2fd", strokeColor = "#3c8dbc",
+                      dateWindow = limits) %>%
+      dyLegend(show = "onmouseover", labelsSeparateLines = TRUE, width = 300) %>% 
+      dyShading(from = "1980-1-1", to = "1980-6-1") %>%
+      dyShading(from = "1981-6-1", to = "1982-10-1") %>%
+      dyShading(from = "1990-3-1", to = "1991-4-1") %>%
+      dyShading(from = "2008-10-1", to = "2009-5-1") %>%
+      dyShading(from = "2020-3-1", to = "2020-5-1") %>%
+      dyAxis("x", drawGrid = FALSE, axisLineColor = "#000000", axisLineWidth = 2) %>%
+      dyAxis("y", axisLineColor = "#FFFFFF", gridLineWidth = 0.1, valueFormatter = value_formatter) %>%
+      dyHighlight(highlightCircleSize = 5) %>%
+      dyOptions(axisLabelColor = "#666666",
+                axisLabelFontSize = 14,
+                colors = colors$color, 
+                strokeWidth = 2)
+  })
+  
+  ## goods/services sectors
+  output$ind_trends_gs_title <- renderUI({
+    
+    req(input$ind_trends_gs_value)
+    
+    change <- ifelse(input$ind_trends_gs_value == "yoy_change",
+                     "Year-over-year change",
+                     "Month-over-month change")
+    
+    div(
+      div(class = "mb-1",
+          style = "font:var(--typography-bold-h5)",
+          "Change in employment by sector"),
+      div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+          paste0(change, ", seasonally adjusted"))
+    )
+  })
+  
+  ## goods/services sectors
+  ind_sector_reactive <- reactive({
+    
+    req(input$ind_trends_gs_sector)
+    req(input$ind_trends_gs_value)
+    
+    args <- list(
+      selected_industry = input$ind_trends_gs_sector,
+      change_type = input$ind_trends_gs_value
+    )
+    
+  }) %>% bindCache(input$ind_trends_gs_sector, input$ind_trends_gs_value)
+  
+  ## goods/services sectors
+  output$ind_sector_chart <- renderPlotly({
+    do.call(ind_trend_bar_chart, ind_sector_reactive())
+  })
+  
+  ## goods industries
+  output$ind_trends_g_title <- renderUI({
+    
+    req(input$ind_trends_g_value)
+    
+    change <- ifelse(input$ind_trends_g_value == "yoy_change",
+                     "Year-over-year change",
+                     "Month-over-month change")
+    
+    div(
+      div(class = "mb-1",
+          style = "font:var(--typography-bold-h5)",
+          "Change in employment by goods sector industries"),
+      div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+          paste0(change, ", seasonally adjusted"))
+    )
+  })
+  
+  ## goods industries
+  ind_goods_reactive <- reactive({
+    
+    req(input$ind_trends_g_sector)
+    req(input$ind_trends_g_value)
+    
+    args <- list(
+      selected_industry = input$ind_trends_g_sector,
+      change_type = input$ind_trends_g_value
+    )
+    
+  }) %>% bindCache(input$ind_trends_g_sector, input$ind_trends_g_value)
+  
+  ## goods industries
+  output$ind_goods_chart <- renderPlotly({
+    do.call(ind_trend_bar_chart, ind_goods_reactive())
+  })
+  
+  ## services industries
+  output$ind_trends_s_title <- renderUI({
+    
+    req(input$ind_trends_s_value)
+    
+    change <- ifelse(input$ind_trends_s_value == "yoy_change",
+                     "Year-over-year change",
+                     "Month-over-month change")
+    
+    div(
+      div(class = "mb-1",
+          style = "font:var(--typography-bold-h5)",
+          "Change in employment by goods sector industries"),
+      div(style = "font-size:var(--typography-font-size-small-body);
+                                            color:var(--typography-color-secondary)",
+          paste0(change, ", seasonally adjusted"))
+    )
+  })
+  
+  ## services industries
+  ind_services_reactive <- reactive({
+    
+    req(input$ind_trends_s_sector)
+    req(input$ind_trends_s_value)
+    
+    args <- list(
+      selected_industry = input$ind_trends_s_sector,
+      change_type = input$ind_trends_s_value
+    )
+    
+  }) %>% bindCache(input$ind_trends_s_sector, input$ind_trends_s_value)
+  
+  ## services industries
+  output$ind_services_chart <- renderPlotly({
+    do.call(ind_trend_bar_chart, ind_services_reactive())
+  })
+  
+  #### Reset checkboxes ----
+  checkbox_groups <- list(
+    ts_selected_industry = c("BC total (all industries)", "Goods-producing sector", "Services-producing sector"),
+    ind_trends_gs_sector = c("Goods-producing sector", "Services-producing sector"),
+    ind_trends_g_sector = industry_vectors$Industry[industry_vectors$Sector == "Goods"],
+    ind_trends_s_sector = industry_vectors$Industry[industry_vectors$Sector == "Services"]
+  )
+  
+  ## Automatically reset if all boxes are unchecked
+  lapply(names(checkbox_groups), function(id) {
+    
+    observeEvent(input[[id]], {
+      
+      if (is.null(input[[id]])) {
+        
+        updateCheckboxGroupInput(
+          session,
+          inputId = id,
+          selected = checkbox_groups[[id]]
+        )
+      }
+      
+    }, ignoreInit = TRUE, ignoreNULL = FALSE)
+    
+  })
+  
+
+  ## Reset buttons
+  observeEvent(input$reset_industry, {
+    updateCheckboxGroupInput(
+      session,
+      inputId = "ts_selected_industry",
+      selected = checkbox_groups[["ts_selected_industry"]]
+    )
+  })
+  
+  observeEvent(input$reset_gs_sector, {
+    updateCheckboxGroupInput(
+      session,
+      inputId = "ind_trends_gs_sector",
+      selected = checkbox_groups[["ind_trends_gs_sector"]]
+    )
+  })
+  
+  observeEvent(input$reset_g_sector, {
+    updateCheckboxGroupInput(
+      session,
+      inputId = "ind_trends_g_sector",
+      selected = checkbox_groups[["ind_trends_g_sector"]]
+    )
+  })
+  
+  observeEvent(input$reset_s_sector, {
+    updateCheckboxGroupInput(
+      session,
+      inputId = "ind_trends_s_sector",
+      selected = checkbox_groups[["ind_trends_s_sector"]]
+    )
+  })
+
+
+  
+
+  
+  
+  
+  
   
   ## Data tables tab: content ---- 
   

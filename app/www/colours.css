@@ -1,0 +1,21 @@
+:root {
+--colour-bc_total_all_industries: black;
+--colour-goods_producing_sector: #1b9e77;
+--colour-agriculture: #009E73;
+--colour-forestry_fishing_mining_quarrying_oil_and_gas: #56B4E9;
+--colour-utilities: #E69F00;
+--colour-construction: #0072B2;
+--colour-manufacturing: #D55E00;
+--colour-services_producing_sector: #7570b3;
+--colour-wholesale_and_retail_trade: #67001f;
+--colour-transportation_and_warehousing: #D95F02;
+--colour-finance_insurance_real_estate_rental_and_leasing: #807dba;
+--colour-professional_scientific_and_technical_services: #E7298A;
+--colour-business_building_and_other_support_services: #66A61E;
+--colour-educational_services: #E6AB02;
+--colour-health_care_and_social_assistance: #A6761D;
+--colour-information_culture_and_recreation: #666666;
+--colour-accommodation_and_food_services: #1F78B4;
+--colour-other_services_except_public_administration: #FB9A99;
+--colour-public_administration: #6A3D9A;
+}

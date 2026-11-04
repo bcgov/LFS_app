@@ -40,6 +40,7 @@ library(viridis) ## for maps
 library(markdown)
 library(reactable)
 library(shinycssloaders) ## for spinners
+library(snakecase)
 
 options(scipen = 9999)  ## so chart axes read properly
 options(spinner.type = 3,

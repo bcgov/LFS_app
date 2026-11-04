@@ -157,3 +157,105 @@ body, h1, h2, h3, h4, h5, h6 {
   height: 60vh !important;
 }
 
+
+/* =====================
+   Checkboxes for industry charts
+   ===================== */
+
+input[type="checkbox"][value="BC total (all industries)"]:checked {
+  background-color: var(--colour-bc_total_all_industries);
+}
+
+input[type="checkbox"][value="Goods-producing sector"]:checked {
+  background-color: var(--colour-goods_producing_sector);
+}
+
+input[type="checkbox"][value="Agriculture"]:checked {
+  background-color: var(--colour-agriculture);
+}
+
+input[type="checkbox"][value="Forestry, fishing, mining, quarrying, oil and gas"]:checked {
+  background-color: var(--colour-forestry_fishing_mining_quarrying_oil_and_gas);
+}
+
+input[type="checkbox"][value="Utilities"]:checked {
+  background-color: var(--colour-utilities);
+}
+
+input[type="checkbox"][value="Construction"]:checked {
+  background-color: var(--colour-construction);
+}
+
+input[type="checkbox"][value="Manufacturing"]:checked {
+  background-color: var(--colour-manufacturing);
+}
+
+input[type="checkbox"][value="Services-producing sector"]:checked {
+  background-color: var(--colour-services_producing_sector);
+}
+
+input[type="checkbox"][value="Wholesale and retail trade"]:checked {
+  background-color: var(--colour-wholesale_and_retail_trade);
+}
+
+input[type="checkbox"][value="Transportation and warehousing"]:checked {
+  background-color: var(--colour-transportation_and_warehousing);
+}
+
+input[type="checkbox"][value="Finance, insurance, real estate, rental and leasing"]:checked {
+  background-color: var(--colour-finance_insurance_real_estate_rental_and_leasing);
+}
+
+input[type="checkbox"][value="Professional, scientific and technical services"]:checked {
+  background-color: var(--colour-professional_scientific_and_technical_services);
+}
+
+input[type="checkbox"][value="Business, building and other support services"]:checked {
+  background-color: var(--colour-business_building_and_other_support_services);
+}
+
+input[type="checkbox"][value="Educational services"]:checked {
+  background-color: var(--colour-educational_services);
+}
+
+input[type="checkbox"][value="Health care and social assistance"]:checked {
+  background-color: var(--colour-health_care_and_social_assistance);
+}
+
+input[type="checkbox"][value="Information, culture and recreation"]:checked {
+  background-color: var(--colour-information_culture_and_recreation);
+}
+
+input[type="checkbox"][value="Accommodation and food services"]:checked {
+  background-color: var(--colour-accommodation_and_food_services);
+}
+
+input[type="checkbox"][value="Other services (except public administration)"]:checked {
+  background-color: var(--colour-other_services_except_public_administration);
+}
+
+input[type="checkbox"][value="Public administration"]:checked {
+  background-color: var(--colour-public_administration);
+}
+
+
+
+#ind_trends_chart .dygraph-legend {
+  background: rgba(255,255,255,0.9) !important;
+  pointer-events:none;
+ /* top: -70px !important;*/
+}
+#ind_trends_chart {
+   height:600px !important;
+ /* padding-top: 75px;*/
+ 
+}
+
+
+
+
+
+
+
+
+

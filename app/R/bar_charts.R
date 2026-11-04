@@ -4,7 +4,11 @@ prov_colors <- c("#FFC000","#1F497D", rep("#4F81BD",9))
 names(prov_colors) = c("CA", "BC", "NL", "PEI", "NS", "NB", "QC", "ON", "MN", "SK", "AB")
 
 ## df must have columns: value, province, color, label
-province_bar_chart <- function(df, x_axis_type = "number", width = NULL, height = NULL) {
+province_bar_chart <- function(df, 
+                               x_axis_type = "number", 
+                               width = NULL, 
+                               height = NULL,
+                               padding = TRUE) {
   
   # Set x-axis range based on the data
   if (x_axis_type == "number") {
@@ -13,7 +17,8 @@ province_bar_chart <- function(df, x_axis_type = "number", width = NULL, height 
     x_max <- max(df$value, na.rm = TRUE)
     
     # Give labels a little room beyond the largest value
-    padding <- max(abs(c(x_min, x_max))) * 0.15
+    if(padding) padding <- max(abs(c(x_min, x_max))) * 0.15
+    else padding <- 0.01
     
     x_range <- c(
       min(0, x_min) - padding,
@@ -350,3 +355,94 @@ plotly_config <- function(plot, width = NULL, height = NULL) {
     
 }
 
+## Industry category ranking by employment
+bar_chart_4 <- function(order = "Descending", ## order can be descending or ascending
+                        comparator_type = "current" ) {## comparator_type can be "current", "mom", or "yoy"
+  
+  selected_industry <- c(
+    "Wholesale trade",                                     
+    "Retail trade",                                        
+    "Agriculture",                                        
+    "Forestry, fishing, mining, quarrying, oil and gas",  
+    "Utilities",                                          
+    "Construction",                                       
+    "Manufacturing",                                      
+    "Transportation and warehousing",                     
+    "Finance, insurance, real estate, rental and leasing",
+    "Professional, scientific and technical services",    
+    "Business, building and other support services",      
+    "Educational services",                               
+    "Health care and social assistance",                  
+    "Information, culture and recreation",                
+    "Accommodation and food services",                    
+    "Other services (except public administration)",      
+    "Public administration"
+  )
+  
+  df <- industry_data %>%
+    filter(Industry %in% selected_industry) %>%
+    mutate(Date = case_when(
+      Date == curr_date ~ "current",
+      Date == prev_month ~ "previous_month",
+      Date == prev_year ~ "previous_year",
+      TRUE ~ NA_character_)) %>%
+    filter(!is.na(Date)) %>%
+    pivot_wider(names_from = "Date", values_from = "value") %>%
+    mutate(mom = round_half_up(current/previous_month - 1, digits = 3),
+           yoy = round_half_up(current/previous_year - 1, digits = 3)) %>%
+    select(-previous_month, -previous_year) %>%
+    pivot_longer(cols = c(current, mom, yoy), names_to = "comparator", values_to = "value") %>%
+    mutate(label = ifelse(
+      comparator == "current",
+      label_comma(accuracy = 0.1)(value),
+      label_percent(accuracy = 0.1)(value)
+    ),
+           color = unname(prov_colors[3])) %>%
+    filter(comparator == comparator_type)
+  
+  if(order == "Descending") {
+    df <- df %>% 
+      arrange(desc(value)) %>%
+      mutate(province = fct_inorder(Industry))
+      
+  } else {
+    df <- df %>% 
+      arrange(value) %>%
+      mutate(province = fct_inorder(Industry))
+  }
+  
+  province_bar_chart(df, padding = FALSE)
+  
+}
+
+ind_trend_bar_chart <- function(selected_industry, change_type = "yoy_change") { ## comparator_type can be "yoy_change" or "mom_change"
+  
+  start_date <- max(industry_data$Date) - years(5)
+  
+  df <- industry_data %>% 
+    filter(Industry %in% selected_industry,
+           Date >= start_date) %>%
+    select(Industry, Date, value) %>%
+    arrange(Industry, Date) %>%
+    group_by(Industry) %>%
+    mutate(mom_change = value - lag(value),
+           yoy_change = value - lag(value, 12))
+ 
+  limits <- c(min(df$Date[!is.na(df[change_type])]), max(df$Date))
+
+  p <- ggplot(df, aes(x = Date, y = !!rlang::sym(change_type), fill = Industry)) +
+    geom_col(width = 25) +  
+    scale_fill_manual(values = deframe(industry_colors)) +
+    scale_y_continuous(labels = label_comma()) +
+    scale_x_date(limits = limits) +
+    labs(x = NULL, y = NULL) +
+    theme_minimal(base_size = 14) +
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "none"
+    ) 
+  
+  p %>% 
+    ggplotly() %>%
+    plotly_config()
+}
