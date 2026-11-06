@@ -1539,8 +1539,16 @@ server <- function(input, output, session) {
         names(data) <- str_replace(names(data), "'000", "%") ## prov tables headers don't include lfs label (i.e. don't contain 'rate')
       }
       
-      ## Render table
+      if(selected_table() %in% c("bc_lfd", "prov_emp_growth", "prov_emp_jobs", "industry", "cow") && input$select_data_type == "Unadjusted"){
+        ## add asterisk to column header
+        i <- which(str_detect(names(data), "CHG"))[1] ## index of first column with CHG
+        names(data)[i] <- str_replace(names(data)[i], "CHG", "CHG*")
+        
+        ## add asterisk to table caption
+        table_captions <- table_captions %>% mutate(caption = str_replace(caption, "<strong>Note:</strong>", "*<strong>Note:</strong>"))
+      }
       
+      ## Render table
       DT::datatable(data, 
                     options = list(#dom = "lpt",info = FALSE, paging = TRUE, pagingType = "simple", 
                                    info = FALSE, paging = FALSE,
