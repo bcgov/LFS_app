@@ -16,7 +16,7 @@ cansim_error <<- FALSE
 latest_update_data <- tryCatch(
   {
     ## Get the latest Labour force data
-    get_cansim_vector_for_latest_periods(vectors = "v2064700", periods = 1)
+    get_cansim_vector_for_latest_periods(vectors = "v2064700", periods = 1, timeout = 600)
   },
   error = function(e) {
     cansim_error <<- TRUE

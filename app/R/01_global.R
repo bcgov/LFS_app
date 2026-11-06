@@ -99,7 +99,7 @@ table_captions <- tibble::tribble(
                                        3. For the unemployed, industry or occupation is based on the last job held in the previous year. No information is collected on industry or occupation of job search.",
                              "region", "<strong>Note:</strong> Revised in January 2021 to reflect 2016 Census population and 2016 Standard Geographic Classification.",
                                 "cma", "<strong>Note:</strong> Revised in January 2021 to reflect 2016 Census population and 2016 Standard Geographic Classification.",
-                                "cow", ""
+                                "cow", "<strong>Note:</strong> Percent changes for unadjusted data are calculated as month over same month previous year. For seasonally adjusted data, percent changes are calculated as month over previous month."
                     )
 
 ## BCStats Chart Theme ----

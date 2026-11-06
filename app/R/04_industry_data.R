@@ -37,9 +37,9 @@ industry_colors <- tribble(
   "Public administration",                               "#6A3D9A"
 )
 
-css_colours <- paste0("--colour-", to_snake_case(industry_colors$Industry), ": ", industry_colors$color, ";")
-css <- paste(":root {", paste(css_colours, collapse = "\n"), "}", sep = "\n")
-writeLines(css, "www/colours.css")
+#css_colours <- paste0("--colour-", to_snake_case(industry_colors$Industry), ": ", industry_colors$color, ";")
+#css <- paste(":root {", paste(css_colours, collapse = "\n"), "}", sep = "\n")
+#writeLines(css, "www/colours.css")
 
 ## Industry vectors ----
 industry_vectors <- tribble(
