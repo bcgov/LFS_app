@@ -522,7 +522,11 @@ ui <- function(req) {
                            div(
                              class = "mt-4",
                              style = "width: 90%",
-                             p(strong("Note:"), "downloaded data will contain all data types for the selected table")
+                             p(strong("Note:"), "downloaded data will contain all data types for the selected table"),
+                             p("All downloaded data is licensed under", 
+                               a("OGL-BC", href = "https://www2.gov.bc.ca/gov/content/data/policy-standards/data-policies/open-data/open-government-licence-bc"),
+                               "or", 
+                               a("OGL-Canada", href = "https://open.canada.ca/en/open-government-licence-canada"))
                            )
                          ),
                          #### Content ----

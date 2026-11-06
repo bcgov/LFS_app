@@ -19,15 +19,15 @@ The labour force is composed of those members of the civilian non-institutional 
 
 Employed persons are those who, during the reference week, either:
 
-1.  did any work at all, or\
+1.  did any work at all, or
 2.  had a job but were not at work due to own illness or disability, personal or family responsibilities, bad weather, labour dispute, vacation, or other reason not specified above (excluding persons whose job attachment was to a job to start at a definite date in the future).
 
 **Unemployment**
 
 Unemployed persons are those who, during the reference week, either:
 
-1.  were without work, had actively looked for work in the past four weeks (ending with the reference week), and were available for work; or\
-2.  had not actively looked for work in the past four weeks but had been on layoff and were available for work; or\
+1.  were without work, had actively looked for work in the past four weeks (ending with the reference week), and were available for work; or
+2.  had not actively looked for work in the past four weeks but had been on layoff and were available for work; or
 3.  had not actively looked for work in the past four weeks but had a new job to start in four weeks or less from the reference week, and were available for work.
 
 **Unemployment Rate**
@@ -64,9 +64,9 @@ Source: Review [**Statistics Canada, Labour Force Survey, Variables**](https://w
 
 ### Open Licence
 
-Data obtained through this application is distributed under the [**Open Government License**](https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc).\
+Data obtained through this application is distributed under the [**Open Government Licence--British Columbia**](https://www2.gov.bc.ca/gov/content/data/policy-standards/data-policies/open-data/open-government-licence-bc).
 <br>
 
 ### GitHub Repository
 
-The GitHub repo for this app is: [**https://github.com/bcgov/LFS_app**](https://github.com/bcgov/LFS_app).<br><br>
+The GitHub repository for this app is [**https://github.com/bcgov/LFS_app**](https://github.com/bcgov/LFS_app), available under the [Apache 2.0 license](http://www.apache.org/licenses/LICENSE-2.0).<br><br>
