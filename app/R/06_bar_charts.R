@@ -8,7 +8,7 @@ province_bar_chart <- function(df,
                                x_axis_type = "number", 
                                width = NULL, 
                                height = NULL,
-                               padding = TRUE) {
+                               padding = NULL) {
   
   # Set x-axis range based on the data
   if (x_axis_type == "number") {
@@ -17,8 +17,7 @@ province_bar_chart <- function(df,
     x_max <- max(df$value, na.rm = TRUE)
     
     # Give labels a little room beyond the largest value
-    if(padding) padding <- max(abs(c(x_min, x_max))) * 0.15
-    else padding <- 0.01
+    if(is.null(padding)) { padding <- max(abs(c(x_min, x_max))) * 0.15 }
     
     x_range <- c(
       min(0, x_min) - padding,
@@ -356,8 +355,14 @@ plotly_config <- function(plot, width = NULL, height = NULL) {
 }
 
 ## Industry category ranking by employment
+## comparator_type can be:
+##  "current"
+##  "mom"
+##  "yoy"
+##  "mom_pct"
+##  "yoy_pct"
 bar_chart_4 <- function(order = "Descending", ## order can be descending or ascending
-                        comparator_type = "current" ) {## comparator_type can be "current", "mom", or "yoy"
+                        comparator_type = "current" ) { 
   
   selected_industry <- c(
     "Wholesale trade",                                     
@@ -388,16 +393,17 @@ bar_chart_4 <- function(order = "Descending", ## order can be descending or asce
       TRUE ~ NA_character_)) %>%
     filter(!is.na(Date)) %>%
     pivot_wider(names_from = "Date", values_from = "value") %>%
-    mutate(mom = round_half_up(current/previous_month - 1, digits = 3),
-           yoy = round_half_up(current/previous_year - 1, digits = 3)) %>%
+    mutate(mom = current - previous_month,
+           yoy = current - previous_year,
+           mom_pct = round_half_up(current/previous_month - 1, digits = 3),
+           yoy_pct = round_half_up(current/previous_year - 1, digits = 3)) %>%
     select(-previous_month, -previous_year) %>%
-    pivot_longer(cols = c(current, mom, yoy), names_to = "comparator", values_to = "value") %>%
+    pivot_longer(cols = -Industry, names_to = "comparator", values_to = "value") %>%
     mutate(label = ifelse(
-      comparator == "current",
+      comparator %in% c("current", "mom", "yoy"),
       label_comma(accuracy = 0.1)(value),
-      label_percent(accuracy = 0.1)(value)
-    ),
-           color = unname(prov_colors[3])) %>%
+      label_percent(accuracy = 0.1)(value)),
+      color = unname(prov_colors[3])) %>%
     filter(comparator == comparator_type)
   
   if(order == "Descending") {
@@ -411,7 +417,8 @@ bar_chart_4 <- function(order = "Descending", ## order can be descending or asce
       mutate(province = fct_inorder(Industry))
   }
   
-  province_bar_chart(df, padding = FALSE)
+  if(comparator_type == "current") province_bar_chart(df, padding = 0)
+  else province_bar_chart(df)
   
 }
 
