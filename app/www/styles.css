@@ -252,10 +252,32 @@ input[type="checkbox"][value="Public administration"]:checked {
 }
 
 
+/* =====================
+   End date sliderInput for industry charts
+   ===================== */ 
+/* Hide slider min, max, and current value labels */
+.irs-min,
+.irs-max {
+    display: none !important;
+}
+
+/* Make the selected portion of the track neutral instead of blue */
+.irs-bar {
+    background: #d9d9d9 !important;
+    border-top: 1px solid #d9d9d9 !important;
+    border-bottom: 1px solid #d9d9d9 !important;
+}
+
+/* Style the full track the same colour */
+.irs-line {
+    background: #d9d9d9 !important;
+    border: 1px solid #d9d9d9 !important;
+}
 
 
 
-
-
-
+/* Remove bslib gap spacing inside this card */
+#bar-trends-card .main.bslib-gap-spacing {
+  gap: 0 !important;
+}
 

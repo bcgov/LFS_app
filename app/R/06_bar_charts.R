@@ -422,26 +422,29 @@ bar_chart_4 <- function(order = "Descending", ## order can be descending or asce
   
 }
 
-ind_trend_bar_chart <- function(selected_industry, change_type = "yoy_change") { ## comparator_type can be "yoy_change" or "mom_change"
+ind_trend_bar_chart <- function(selected_industry, change_type = "yoy_change", end_year) { ## comparator_type can be "yoy_change" or "mom_change"
   
-  start_date <- max(industry_data$Date) - years(5)
+  max_date <- max(industry_data$Date)
+  end_date <- min(ymd(paste0(end_year, "-12-01")), max_date)
+  start_date <- end_date - years(6) ## subtract 6 to account for lag
   
   df <- industry_data %>% 
     filter(Industry %in% selected_industry,
-           Date >= start_date) %>%
+           between(Date, start_date, end_date)) %>%
     select(Industry, Date, value) %>%
     arrange(Industry, Date) %>%
     group_by(Industry) %>%
     mutate(mom_change = value - lag(value),
-           yoy_change = value - lag(value, 12))
+           yoy_change = value - lag(value, 12)) %>%
+    filter(Date >= start_date + years(1)) ## filter to include only 5 years
  
-  limits <- c(min(df$Date[!is.na(df[change_type])]), max(df$Date))
+  limits <- c(min(df$Date[!is.na(df[change_type])]), max(df$Date) + months(1))
 
   p <- ggplot(df, aes(x = Date, y = !!rlang::sym(change_type), fill = Industry)) +
     geom_col(width = 25) +  
     scale_fill_manual(values = deframe(industry_colors)) +
     scale_y_continuous(labels = label_comma()) +
-    scale_x_date(limits = limits) +
+    scale_x_date(limits = limits, date_breaks = "1 year", date_labels = "%Y") +
     labs(x = NULL, y = NULL) +
     theme_minimal(base_size = 14) +
     theme(

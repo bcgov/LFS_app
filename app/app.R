@@ -320,7 +320,7 @@ ui <- function(req) {
                          card_body(
                            class = "ps-0",
                            layout_sidebar(
-                             class = "ps-0",
+                             class = "ps-0 pb-0",
                              sidebar = sidebar(
                                width = 450,
                                position = "right",
@@ -331,7 +331,7 @@ ui <- function(req) {
                                  selected = "Unemployment rate")
                              ),
                              withSpinner(dygraphOutput("ts_chart")),
-                             div(class = "ps-3",
+                             div(class = "ps-3 mt-4",
                                  em("Shaded areas indicate Canadian recessions"),
                                  p("To see values, hover over the chart.", class = "mb-0"),
                                  p("To zoom in, use the slider below the chart or click and drag on the chart. Double-click the chart to reset."),
@@ -359,7 +359,7 @@ ui <- function(req) {
                          card_body(
                            class = "ps-0",
                            layout_sidebar(
-                             class = "ps-0",
+                             class = "ps-0 pb-0",
                              sidebar = sidebar(
                                width = 450,
                                position = "right",
@@ -383,7 +383,7 @@ ui <- function(req) {
                                actionButton("reset_industry", "Reset industries")
                              ),
                               withSpinner(dygraphOutput("ind_trends_chart")),
-                             div(class = "ps-3",
+                             div(class = "ps-3 mt-4",
                                  em("Shaded areas indicate Canadian recessions"),
                                  p("To see values, hover over the chart.", class = "mb-0"),
                                  p("To zoom in, use the slider below the chart or click and drag on the chart. Double-click the chart to reset."),
@@ -399,11 +399,12 @@ ui <- function(req) {
                            
                          )),
                        card(class = "mt-4",
+                            id = "bar-trends-card",
                              card_header(uiOutput("ind_trends_gs_title")),
                              card_body(
                                class = "ps-0",
                                layout_sidebar(
-                                 class = "ps-0",
+                                 class = "ps-0 pb-0",
                                  sidebar = sidebar(
                                    width = 450,
                                    position = "right",
@@ -423,7 +424,20 @@ ui <- function(req) {
                                    ),
                                    actionButton("reset_gs_sector", "Reset sectors")
                                  ),
-                                 withSpinner(plotlyOutput("ind_sector_chart"))
+                                 withSpinner(plotlyOutput("ind_sector_chart")),
+                                 div(class = "ps-3 m-0",
+                                     sliderInput("ind_gs_end_date",
+                                                 label = NULL,
+                                                 min = year(min(industry_data$Date)),
+                                                 max = year(max(industry_data$Date)),
+                                                 value = year(max(industry_data$Date)),
+                                                 step = 1,
+                                                 sep = "",
+                                                 width = "100%"),
+                                     p("To see values, hover over the chart.", class = "mb-0"),
+                                     p("Use the slider below the chart to select the last year displayed.")
+                                     )
+                                 
                                ),
                                p(class = "ps-3 mb-0 source",
                                  "Source:",
@@ -434,11 +448,12 @@ ui <- function(req) {
                                )
                              )),
                            card(class = "mt-4",
+                                id = "bar-trends-card",
                              card_header(uiOutput("ind_trends_g_title")),
                              card_body(
                                class = "ps-0",
                                layout_sidebar(
-                                 class = "ps-0",
+                                 class = "ps-0 pb-0",
                                  sidebar = sidebar(
                                    width = 450,
                                    position = "right",
@@ -456,7 +471,19 @@ ui <- function(req) {
                                    ),
                                    actionButton("reset_g_sector", "Reset industries")
                                  ),
-                                 withSpinner(plotlyOutput("ind_goods_chart"))
+                                 withSpinner(plotlyOutput("ind_goods_chart")),
+                                 div(class = "ps-3 m-0",
+                                     sliderInput("ind_g_end_date",
+                                                 label = NULL,
+                                                 min = year(min(industry_data$Date)),
+                                                 max = year(max(industry_data$Date)),
+                                                 value = year(max(industry_data$Date)),
+                                                 step = 1,
+                                                 sep = "",
+                                                 width = "100%"),
+                                     p("To see values, hover over the chart.", class = "mb-0"),
+                                     p("Use the slider below the chart to select the last year displayed.")
+                                 )
                                 ),
                                p(class = "ps-3 mb-0 source",
                                  "Source:",
@@ -467,11 +494,12 @@ ui <- function(req) {
                                )
                              )),
                        card(class = "mt-4",
+                            id = "bar-trends-card",
                             card_header(uiOutput("ind_trends_s_title")),
                             card_body(
                               class = "ps-0",
                               layout_sidebar(
-                                class = "ps-0",
+                                class = "ps-0 pb-0",
                                 sidebar = sidebar(
                                   width = 450,
                                   position = "right",
@@ -489,7 +517,19 @@ ui <- function(req) {
                                   ),
                                   actionButton("reset_s_sector", "Reset industries")
                                 ),
-                                withSpinner(plotlyOutput("ind_services_chart"))
+                                withSpinner(plotlyOutput("ind_services_chart")),
+                                div(class = "ps-3 m-0",
+                                    sliderInput("ind_s_end_date",
+                                                label = NULL,
+                                                min = year(min(industry_data$Date)),
+                                                max = year(max(industry_data$Date)),
+                                                value = year(max(industry_data$Date)),
+                                                step = 1,
+                                                sep = "",
+                                                width = "100%"),
+                                    p("To see values, hover over the chart.", class = "mb-0"),
+                                    p("Use the slider below the chart to select the last year displayed.")
+                                )
                               ),
                               p(class = "ps-3 mb-0 source",
                                 "Source:",
@@ -1271,13 +1311,15 @@ server <- function(input, output, session) {
     
     req(input$ind_trends_gs_sector)
     req(input$ind_trends_gs_value)
+    req(input$ind_gs_end_date)
     
     args <- list(
       selected_industry = input$ind_trends_gs_sector,
-      change_type = input$ind_trends_gs_value
+      change_type = input$ind_trends_gs_value,
+      end_year <- input$ind_gs_end_date
     )
     
-  }) %>% bindCache(input$ind_trends_gs_sector, input$ind_trends_gs_value)
+  }) %>% bindCache(input$ind_trends_gs_sector, input$ind_trends_gs_value, input$ind_gs_end_date)
   
   ## goods/services sectors
   output$ind_sector_chart <- renderPlotly({
@@ -1308,13 +1350,15 @@ server <- function(input, output, session) {
     
     req(input$ind_trends_g_sector)
     req(input$ind_trends_g_value)
+    req(input$ind_g_end_date)
     
     args <- list(
       selected_industry = input$ind_trends_g_sector,
-      change_type = input$ind_trends_g_value
+      change_type = input$ind_trends_g_value,
+      end_year = input$ind_g_end_date
     )
     
-  }) %>% bindCache(input$ind_trends_g_sector, input$ind_trends_g_value)
+  }) %>% bindCache(input$ind_trends_g_sector, input$ind_trends_g_value, input$ind_g_end_date)
   
   ## goods industries
   output$ind_goods_chart <- renderPlotly({
@@ -1333,7 +1377,7 @@ server <- function(input, output, session) {
     div(
       div(class = "mb-1",
           style = "font:var(--typography-bold-h5)",
-          "Change in employment by service sector industries ('000)"),
+          "Change in employment by services sector industries ('000)"),
       div(style = "font-size:var(--typography-font-size-small-body);
                                             color:var(--typography-color-secondary)",
           paste0(change, ", seasonally adjusted"))
@@ -1345,13 +1389,15 @@ server <- function(input, output, session) {
     
     req(input$ind_trends_s_sector)
     req(input$ind_trends_s_value)
+    req(input$ind_s_end_date)
     
     args <- list(
       selected_industry = input$ind_trends_s_sector,
-      change_type = input$ind_trends_s_value
+      change_type = input$ind_trends_s_value,
+      end_year = input$ind_s_end_date
     )
     
-  }) %>% bindCache(input$ind_trends_s_sector, input$ind_trends_s_value)
+  }) %>% bindCache(input$ind_trends_s_sector, input$ind_trends_s_value, input$ind_s_end_date)
   
   ## services industries
   output$ind_services_chart <- renderPlotly({
