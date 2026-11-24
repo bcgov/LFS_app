@@ -44,14 +44,17 @@ ui <- function(req) {
         ),
         
         ## Custom formatting ----
-        ## formatting for icons in valueBoxes
-        tags$head(tags$style(HTML('.small-box .icon-large {top: -10px;}'))),
-        
-        ## formatting for tabBox content
-        tags$head(tags$style(HTML('.nav-tabs-custom>.tab-content {border: 1px solid #3c8dbc}'))),
-        tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active
-                                      {border-top-color: #3c8dbc; border-left: 1px solid #3c8dbc;'))),
-        tags$head(tags$style(HTML('.nav-tabs-custom>.nav-tabs>li.active>a {border-right: 1px solid #3c8dbc}'))),
+        ## formatting for sliderInput - display last label only if it is divisible by 5
+        tags$script(HTML("$(document).on('shiny:connected', function() {
+            $('#bar-trends-card .irs-grid').each(function() {
+              var labels = $(this).find('.irs-grid-text');
+              var lastLabel = labels.last();
+              var year = parseInt(lastLabel.text());
+              if (!isNaN(year) && year % 5 !== 0) {
+                lastLabel.hide();
+              }
+            });
+          }); ")),
 
         ## Header column ----
         bcsHeaderUI(
@@ -428,10 +431,10 @@ ui <- function(req) {
                                  div(class = "ps-3 m-0",
                                      sliderInput("ind_gs_end_date",
                                                  label = NULL,
-                                                 min = year(min(industry_data$Date)),
+                                                 min = year(min(industry_data$Date)) + 4,
                                                  max = year(max(industry_data$Date)),
                                                  value = year(max(industry_data$Date)),
-                                                 step = 1,
+                                                 step = 5,
                                                  sep = "",
                                                  width = "100%"),
                                      p("To see values, hover over the chart.", class = "mb-0"),
@@ -475,10 +478,10 @@ ui <- function(req) {
                                  div(class = "ps-3 m-0",
                                      sliderInput("ind_g_end_date",
                                                  label = NULL,
-                                                 min = year(min(industry_data$Date)),
+                                                 min = year(min(industry_data$Date)) + 4,
                                                  max = year(max(industry_data$Date)),
                                                  value = year(max(industry_data$Date)),
-                                                 step = 1,
+                                                 step = 5,
                                                  sep = "",
                                                  width = "100%"),
                                      p("To see values, hover over the chart.", class = "mb-0"),
@@ -521,10 +524,10 @@ ui <- function(req) {
                                 div(class = "ps-3 m-0",
                                     sliderInput("ind_s_end_date",
                                                 label = NULL,
-                                                min = year(min(industry_data$Date)),
+                                                min = year(min(industry_data$Date)) + 4,
                                                 max = year(max(industry_data$Date)),
                                                 value = year(max(industry_data$Date)),
-                                                step = 1,
+                                                step = 5,
                                                 sep = "",
                                                 width = "100%"),
                                     p("To see values, hover over the chart.", class = "mb-0"),
