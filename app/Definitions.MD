@@ -64,8 +64,7 @@ Source: Review [**Statistics Canada, Labour Force Survey, Variables**](https://w
 
 ### Open Licence
 
-Data obtained through this application is distributed under the [**Open Government Licence--British Columbia**](https://www2.gov.bc.ca/gov/content/data/policy-standards/data-policies/open-data/open-government-licence-bc).
-<br>
+Data obtained through this application is distributed under the [**Open Government Licence--British Columbia**](https://www2.gov.bc.ca/gov/content/data/policy-standards/data-policies/open-data/open-government-licence-bc). <br><br>
 
 ### GitHub Repository
 
